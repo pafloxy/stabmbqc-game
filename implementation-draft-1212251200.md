@@ -731,3 +731,153 @@ The game narrative can say:
 Implementation-wise, this is just multiple-choice steps.
 
 That’s it. If Codex implements the schema + state machine, you can fill in the physics in JSON at your own pace.
+
+
+
+## Appendix A: Example campaign JSON (drop-in)
+
+Save as: `docs/levels/example-campaign.json` (or rename to `level-1.json`).
+
+Notes:
+
+* Two rounds:
+
+  * Round 1: select measurement (single step)
+  * Round 2: select measurement + select correction given an outcome (two steps)
+* Image paths are placeholders; create empty PNGs at the referenced locations or update them.
+* To keep this drop-in robust, option labels use plain text (no LaTeX rendering required).
+
+```json
+{
+  "schema_version": "1.0",
+  "meta": {
+    "title": "Stabilizer Survival",
+    "subtitle": "Harold Edition",
+    "theme": "terminal",
+    "assets_base": "assets"
+  },
+  "config": {
+    "timer": {"enabled": true, "seconds_per_step": 30},
+    "cheat": {"enabled": true, "code": "HAROLD"}
+  },
+  "info": {
+    "markdown": "# Rulebook
+
+- You are Alice. Protect psi inside a stabilizer backbone.
+- Bob entangles with CZ and sometimes inserts Pauli-rotations.
+- Charlie must measure something: you choose the least destructive option.
+- Later rounds: recover the induced unitary/byproduct.
+",
+    "images": ["info/rulebook.png"]
+  },
+  "intro_slides": [
+    {
+      "id": "intro-1",
+      "title": "Your code is under attack",
+      "body_markdown": "Bob entangles his + ancillas with your system, then Charlie measures.",
+      "images": ["slides/intro-1.png"]
+    },
+    {
+      "id": "intro-2",
+      "title": "How to win",
+      "body_markdown": "Pick answers that keep the process deterministic: no logical measurement; apply the correct byproduct when asked.",
+      "images": ["slides/intro-2.png"]
+    }
+  ],
+  "rounds": [
+    {
+      "id": "r1",
+      "title": "Round 1: Pick a non-destructive measurement",
+      "difficulty": 1,
+      "context_markdown": "Alice holds (S, psi). Bob uses only CZ. Charlie offers Pauli measurements.",
+      "assets": {
+        "circuit_image": "rounds/r1-circuit.png",
+        "graph_image": "rounds/r1-graph.png"
+      },
+      "qc_spec": {
+        "n_qubits": 5,
+        "alice_qubits": [0, 1, 2],
+        "bob_qubits": [3, 4],
+        "cz_edges": [[1, 3], [2, 4]],
+        "rotations": [],
+        "measurements": []
+      },
+      "steps": [
+        {
+          "id": "r1-s1",
+          "kind": "select_measurement",
+          "prompt_markdown": "Charlie offers these measurements. Pick the one that is non-destructive.",
+          "options": [
+            {"id": "A", "label": "Z3 X4", "detail_markdown": "Candidate 1"},
+            {"id": "B", "label": "X1 Z3", "detail_markdown": "Candidate 2"},
+            {"id": "C", "label": "Z1 Z2", "detail_markdown": "Candidate 3"}
+          ],
+          "answer": {"correct_option_id": "A"},
+          "feedback": {
+            "on_correct_markdown": "Correct. This preserves recoverability.",
+            "on_wrong_markdown": "Wrong. This destroys logical info (or breaks determinism)."
+          },
+          "timer": {"enabled": true, "seconds": 25}
+        }
+      ]
+    },
+    {
+      "id": "r2",
+      "title": "Round 2: Outcome-dependent correction",
+      "difficulty": 2,
+      "context_markdown": "Charlie measures your chosen M and obtains an outcome. Pick the correct byproduct correction.",
+      "assets": {
+        "circuit_image": "rounds/r2-circuit.png",
+        "graph_image": "rounds/r2-graph.png"
+      },
+      "qc_spec": {
+        "n_qubits": 5,
+        "alice_qubits": [0, 1, 2],
+        "bob_qubits": [3, 4],
+        "cz_edges": [[1, 3], [2, 4]],
+        "rotations": [{"gate": "X", "q": 1, "theta": "theta1"}],
+        "measurements": [{"pauli": "Z3 X4", "who": "charlie"}]
+      },
+      "steps": [
+        {
+          "id": "r2-s1",
+          "kind": "select_measurement",
+          "prompt_markdown": "Pick a measurement that keeps the PES extractable.",
+          "options": [
+            {"id": "A", "label": "Z3 X4"},
+            {"id": "B", "label": "X1 Z3"},
+            {"id": "C", "label": "X3"}
+          ],
+          "answer": {"correct_option_id": "A"},
+          "feedback": {
+            "on_correct_markdown": "Good. Now handle the outcome.",
+            "on_wrong_markdown": "Bad measurement choice."
+          },
+          "timer": {"enabled": true, "seconds": 30}
+        },
+        {
+          "id": "r2-s2",
+          "kind": "select_correction",
+          "prompt_markdown": "Outcome revealed: m = -1. Which correction should Alice apply?",
+          "options": [
+            {"id": "A", "label": "I"},
+            {"id": "B", "label": "X1"},
+            {"id": "C", "label": "Z0 Z2"}
+          ],
+          "answer": {"correct_option_id": "B"},
+          "feedback": {
+            "on_correct_markdown": "Recovered. Determinism restored.",
+            "on_wrong_markdown": "Wrong byproduct; computation deviates."
+          },
+          "timer": {"enabled": true, "seconds": 25}
+        }
+      ]
+    }
+  ]
+}
+```
+
+Implementation note (frontend):
+
+* Treat `qc_spec` as optional (ignore unless you want to render extra hints).
+* The game only needs `steps[*].options` and `steps[*].answer.correct_option_id` to run.
