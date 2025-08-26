@@ -2,119 +2,59 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Stabilizer Survival – Level 1</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stabilizer Survival</title>
   <link rel="stylesheet" href="style.css">
+  
+  <!-- MathJax Configuration -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true,
+        macros: {
+          ket: ['|#1\\rangle', 1],
+          bra: ['\\langle#1|', 1],
+          braket: ['\\langle#1|#2\\rangle', 2],
+          ketbra: ['|#1\\rangle\\langle#2|', 2]
+        }
+      },
+      svg: {
+        fontCache: 'global',
+        scale: 1.1
+      },
+      options: {
+        renderActions: {
+          addMenu: [0, '', '']
+        }
+      },
+      startup: {
+        ready: () => {
+          MathJax.startup.defaultReady();
+          window.mathJaxReady = true;
+        }
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  
+  <!-- Custom MathJax styling for terminal theme -->
+  <style>
+    mjx-container {
+      color: inherit !important;
+    }
+    mjx-container svg {
+      fill: currentColor;
+    }
+  </style>
 </head>
 <body>
-  <!-- Slides overlay (intro / between levels) -->
-  <div id="slides-overlay">
-    <div id="slides-content">
-      <h1 id="slide-title"></h1>
-      <div id="slide-main">
-        <div id="slide-text"></div>
-        <div id="slide-media">
-          <img id="slide-circuit" alt="Circuit" />
-          <img id="slide-graph" alt="Graph" />
-        </div>
-      </div>
-      <div id="slides-controls">
-        <div id="slides-left-buttons">
-          <button id="slide-prev-btn" class="secondary-btn">⮜ Back</button>
-          <button id="slide-next-btn" class="secondary-btn">Next ⮞</button>
-        </div>
-        <div id="slides-right-buttons">
-          <button id="slide-skip-btn" class="secondary-btn">Skip intro</button>
-          <button id="slide-start-level-btn" class="primary-btn" style="display:none;">
-            Start level
-          </button>
-        </div>
-      </div>
+  <div id="app">
+    <!-- Content rendered by JavaScript -->
+    <div class="screen loading-screen">
+      <h1>Loading...</h1>
     </div>
-  </div>
-
-  <!-- Rules / info overlay -->
-  <div id="info-overlay" class="hidden">
-    <div id="info-content">
-      <h1>Game Guidelines (Dummy)</h1>
-      <ul>
-        <li>You play as Alice, protecting a logical qubit encoded in a stabilizer code.</li>
-        <li>Each round, Charlie must perform one Pauli measurement. You choose which one.</li>
-        <li>Safe choice: a Pauli that anticommutes with at least one stabilizer generator (it only reshuffles stabilizers).</li>
-        <li>Unsafe choice: treated here as a logical measurement – it collapses the logical state and ends the level.</li>
-        <li>You only have a limited time each round. If the timer hits zero, the hacker wins that round.</li>
-      </ul>
-      <p class="info-note">In the real version, this page will also show the key math rules and diagrams.</p>
-      <div id="info-controls">
-        <button id="info-close-btn" class="primary-btn">Back to game</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Game container -->
-  <div id="game-container" class="hidden">
-    <header id="game-header">
-      <div>
-        <h1 id="game-title">Stabilizer Survival</h1>
-        <div id="game-level">Loading level...</div>
-        <div id="round-label"></div>
-      </div>
-      <div id="header-right">
-        <div id="round-progress"></div>
-        <div id="timer-box">
-          Time left: <span id="timer-value">--</span>s
-        </div>
-        <div id="header-buttons">
-          <button id="rules-btn" class="secondary-btn header-btn">Rules</button>
-          <button id="restart-game-btn" class="secondary-btn header-btn">Restart game ↻</button>
-        </div>
-      </div>
-    </header>
-
-    <main id="game-main">
-      <section id="left-panel">
-        <div id="graph-wrapper">
-          <img id="graph-image" alt="Code graph" />
-        </div>
-        <div id="circuit-box">
-          <h2>Circuit view</h2>
-          <div id="circuit-wrapper">
-            <img id="circuit-image" alt="Circuit diagram" />
-          </div>
-        </div>
-        <div id="stabilizer-box">
-          <h2>Stabilizers</h2>
-          <ul id="stabilizer-list"></ul>
-        </div>
-      </section>
-
-      <section id="right-panel">
-        <div id="description-box">
-          <p id="level-description"></p>
-          <p id="round-text" class="round-text"></p>
-        </div>
-
-        <div id="choices-box">
-          <h2>Charlie’s possible measurements</h2>
-          <div id="candidate-buttons"></div>
-        </div>
-
-        <div id="feedback-box">
-          <p id="feedback-message"></p>
-        </div>
-
-        <div id="controls-box">
-          <button id="next-round-btn" class="secondary-btn" style="display:none;">
-            Next round ⮞
-          </button>
-          <button id="restart-level-btn" class="secondary-btn" style="display:none;">
-            Restart level ↻
-          </button>
-          <button id="next-level-btn" class="primary-btn" style="display:none;">
-            Level 2 (coming soon)
-          </button>
-        </div>
-      </section>
-    </main>
   </div>
 
   <script src="main.js" defer></script>
