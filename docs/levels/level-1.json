@@ -1,0 +1,21 @@
+{
+  "id": "level-1",
+  "title": "Level 1 – Don’t Measure the Logical Qubit",
+  "description": "Alice has a 3-qubit code stabilized by ZZI and IZZ. Charlie offers three possible Pauli measurements. Pick one that is safe: it should anticommute with at least one stabilizer generator, so it only changes the stabilizer and not the logical information.",
+  "numQubits": 3,
+  "stabilizers": ["ZZI", "IZZ"],
+  "candidates": [
+    {
+      "label": "Z I I",
+      "pauli": "ZII"
+    },
+    {
+      "label": "X I I",
+      "pauli": "XII"
+    },
+    {
+      "label": "X X X",
+      "pauli": "XXX"
+    }
+  ]
+}

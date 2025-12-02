@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Stabilizer Survival – Level 1</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game-container">
+    <header id="game-header">
+      <h1 id="game-title">Stabilizer Survival</h1>
+      <div id="game-level">Loading level...</div>
+    </header>
+
+    <main id="game-main">
+      <section id="left-panel">
+        <div id="graph-wrapper">
+          <img id="graph-image" alt="Code graph" />
+        </div>
+        <div id="stabilizer-box">
+          <h2>Stabilizers</h2>
+          <ul id="stabilizer-list"></ul>
+        </div>
+      </section>
+
+      <section id="right-panel">
+        <div id="description-box">
+          <p id="level-description"></p>
+        </div>
+
+        <div id="choices-box">
+          <h2>Charlie’s possible measurements</h2>
+          <div id="candidate-buttons"></div>
+        </div>
+
+        <div id="feedback-box">
+          <p id="feedback-message"></p>
+        </div>
+
+        <div id="controls-box">
+          <button id="next-level-btn" style="display:none;">
+            Next level (coming soon)
+          </button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
