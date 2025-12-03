@@ -1,49 +1,58 @@
 {
   "id": "level-1",
   "title": "Level 1 – Don’t Measure the Logical Qubit",
-  "description": "In each round, Charlie offers some Pauli measurements on Alice's code. Your job: pick a measurement that is safe – it should anticommute with at least one stabilizer generator, so that it only updates the stabilizer and not the logical information.",
+  "description": "Dummy Level 1: in each round, Charlie offers some Pauli measurements on Alice's code. Your job: pick a measurement that is safe – it should anticommute with at least one stabilizer generator, so that it only updates the stabilizer and not the logical information.",
+  "roundTimeLimitSeconds": 15,
+  "introSlides": [
+    {
+      "title": "Welcome to Stabilizer Survival",
+      "text": "Alice rules a tiny quantum kingdom encoded as |S, ψ⟩. The walls of her castle are the stabilizers; the logical qubit is the throne she wants to protect."
+    },
+    {
+      "title": "The Measurement Hacker",
+      "text": "Bob hires a hacker who can only touch the kingdom via Pauli measurements. Some measurements merely swap or flip walls; others smash directly into the throne."
+    },
+    {
+      "title": "Level 1 Rules (Dummy)",
+      "text": "In each round, you will see a small stabilizer code and several Pauli measurement options. Choose one that anticommutes with at least one stabilizer generator. Answer in time, and you survive the round."
+    }
+  ],
   "rounds": [
     {
       "id": 1,
       "label": "Round 1",
-      "text": "Warm-up: 3-qubit chain code. Only one of these is safe.",
+      "text": "Dummy round 1: simple 3-qubit code. Only one choice is safe.",
       "numQubits": 3,
       "stabilizers": ["ZZI", "IZZ"],
       "candidates": [
         { "label": "Z I I", "pauli": "ZII" },
         { "label": "X I I", "pauli": "XII" },
         { "label": "X X X", "pauli": "XXX" }
-      ],
-      "graphImage": "assets/level-1-round1-graph.png",
-      "circuitImage": "assets/level-1-round1-circuit.png"
+      ]
     },
     {
       "id": 2,
       "label": "Round 2",
-      "text": "Same code, but now Charlie targets the middle qubit.",
+      "text": "Dummy round 2: same code, different options.",
       "numQubits": 3,
       "stabilizers": ["ZZI", "IZZ"],
       "candidates": [
         { "label": "I Z I", "pauli": "IZI" },
         { "label": "I X I", "pauli": "IXI" },
         { "label": "Z Z Z", "pauli": "ZZZ" }
-      ],
-      "graphImage": "assets/level-1-round2-graph.png",
-      "circuitImage": "assets/level-1-round2-circuit.png"
+      ]
     },
     {
       "id": 3,
       "label": "Round 3",
-      "text": "A slightly more evil set of options. Think about which ones are likely logical.",
+      "text": "Dummy round 3: one last test. Think about which operators are more likely to be logical.",
       "numQubits": 3,
       "stabilizers": ["ZZI", "IZZ"],
       "candidates": [
         { "label": "I I Z", "pauli": "IIZ" },
         { "label": "X X I", "pauli": "XXI" },
         { "label": "X X X", "pauli": "XXX" }
-      ],
-      "graphImage": "assets/level-1-round3-graph.png",
-      "circuitImage": "assets/level-1-round3-circuit.png"
+      ]
     }
   ]
 }

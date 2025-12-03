@@ -6,24 +6,28 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Intro screen -->
-  <div id="intro-screen">
-    <div id="intro-content">
-      <h1>Stabilizer Survival</h1>
-      <p>
-        Alice has an encoded stabilizer state <span class="mathlike">|𝒮, ψ⟩</span>. 
-        Charlie is secretly on her side, but is forced by Bob to perform a Pauli measurement each round.
-      </p>
-      <p>
-        Your task: in each round, choose a Pauli measurement that is <strong>safe</strong> – it should anticommute with at least one stabilizer generator, so it only updates the stabilizer and does not measure a logical operator.
-      </p>
-      <p class="small-note">
-        Level 1: no fancy unitaries yet. This is pure stabilizer intuition training.
-      </p>
-      <button id="start-btn">Start Level 1</button>
+  <!-- Slides overlay (intro / between levels) -->
+  <div id="slides-overlay">
+    <div id="slides-content">
+      <h1 id="slide-title"></h1>
+      <div id="slide-main">
+        <div id="slide-text"></div>
+        <div id="slide-media">
+          <img id="slide-circuit" alt="Circuit" />
+          <img id="slide-graph" alt="Graph" />
+        </div>
+      </div>
+      <div id="slides-controls">
+        <button id="slide-prev-btn" class="secondary-btn">⮜ Back</button>
+        <button id="slide-next-btn" class="secondary-btn">Next ⮞</button>
+        <button id="slide-start-level-btn" class="primary-btn" style="display:none;">
+          Start level
+        </button>
+      </div>
     </div>
   </div>
 
+  <!-- Game container -->
   <div id="game-container" class="hidden">
     <header id="game-header">
       <div>
@@ -31,7 +35,12 @@
         <div id="game-level">Loading level...</div>
         <div id="round-label"></div>
       </div>
-      <div id="round-progress"></div>
+      <div id="header-right">
+        <div id="round-progress"></div>
+        <div id="timer-box">
+          Time left: <span id="timer-value">--</span>s
+        </div>
+      </div>
     </header>
 
     <main id="game-main">
@@ -70,7 +79,10 @@
           <button id="next-round-btn" class="secondary-btn" style="display:none;">
             Next round ⮞
           </button>
-          <button id="next-level-btn" style="display:none;">
+          <button id="restart-level-btn" class="secondary-btn" style="display:none;">
+            Restart level ↻
+          </button>
+          <button id="next-level-btn" class="primary-btn" style="display:none;">
             Level 2 (coming soon)
           </button>
         </div>

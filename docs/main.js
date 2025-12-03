@@ -49,8 +49,17 @@ let currentLevel = null;
 let currentRoundIndex = 0;
 let hasAnsweredThisRound = false;
 
+// slides state
+let currentSlides = [];
+let currentSlideIndex = 0;
+let slidesDoneCallback = null;
+
+// timer state
+let roundTimerId = null;
+let remainingSeconds = 0;
+
 // ==========================
-// Level loading & rendering
+// Level loading
 // ==========================
 
 async function loadLevel(levelId) {
@@ -61,6 +70,153 @@ async function loadLevel(levelId) {
   const levelData = await response.json();
   return levelData;
 }
+
+// ==========================
+// Slides engine
+// ==========================
+
+function showSlides(slides, onDone) {
+  currentSlides = slides || [];
+  currentSlideIndex = 0;
+  slidesDoneCallback = typeof onDone === "function" ? onDone : null;
+
+  const overlay = $("#slides-overlay");
+  if (overlay) overlay.classList.remove("hidden");
+
+  renderSlide();
+}
+
+function hideSlides() {
+  const overlay = $("#slides-overlay");
+  if (overlay) overlay.classList.add("hidden");
+}
+
+function renderSlide() {
+  if (!currentSlides || currentSlides.length === 0) {
+    // nothing to show
+    hideSlides();
+    if (slidesDoneCallback) slidesDoneCallback();
+    return;
+  }
+
+  const slide = currentSlides[currentSlideIndex];
+
+  const titleEl = $("#slide-title");
+  const textEl = $("#slide-text");
+  const circImg = $("#slide-circuit");
+  const graphImg = $("#slide-graph");
+  const prevBtn = $("#slide-prev-btn");
+  const nextBtn = $("#slide-next-btn");
+  const startBtn = $("#slide-start-level-btn");
+
+  if (titleEl) titleEl.textContent = slide.title || "";
+  if (textEl) textEl.textContent = slide.text || "";
+
+  if (circImg) {
+    if (slide.circuitImage) {
+      circImg.src = slide.circuitImage;
+      circImg.style.display = "block";
+    } else {
+      circImg.style.display = "none";
+    }
+  }
+
+  if (graphImg) {
+    if (slide.graphImage) {
+      graphImg.src = slide.graphImage;
+      graphImg.style.display = "block";
+    } else {
+      graphImg.style.display = "none";
+    }
+  }
+
+  const atFirst = currentSlideIndex === 0;
+  const atLast = currentSlideIndex === currentSlides.length - 1;
+
+  if (prevBtn) prevBtn.disabled = atFirst;
+  if (nextBtn) nextBtn.style.display = atLast ? "none" : "inline-block";
+  if (startBtn) startBtn.style.display = atLast ? "inline-block" : "none";
+}
+
+function nextSlide() {
+  if (!currentSlides || currentSlides.length === 0) return;
+  if (currentSlideIndex < currentSlides.length - 1) {
+    currentSlideIndex += 1;
+    renderSlide();
+  } else {
+    // done
+    hideSlides();
+    if (slidesDoneCallback) slidesDoneCallback();
+  }
+}
+
+function prevSlide() {
+  if (!currentSlides || currentSlides.length === 0) return;
+  if (currentSlideIndex > 0) {
+    currentSlideIndex -= 1;
+    renderSlide();
+  }
+}
+
+// ==========================
+// Round timer
+// ==========================
+
+function clearRoundTimer() {
+  if (roundTimerId !== null) {
+    clearInterval(roundTimerId);
+    roundTimerId = null;
+  }
+}
+
+function startRoundTimer(limitSeconds) {
+  clearRoundTimer();
+
+  const timerValueEl = $("#timer-value");
+  if (!timerValueEl || !limitSeconds) {
+    return;
+  }
+
+  remainingSeconds = limitSeconds;
+  timerValueEl.textContent = remainingSeconds.toString();
+
+  roundTimerId = setInterval(() => {
+    remainingSeconds -= 1;
+    if (remainingSeconds <= 0) {
+      remainingSeconds = 0;
+    }
+    timerValueEl.textContent = remainingSeconds.toString();
+
+    if (remainingSeconds <= 0) {
+      clearRoundTimer();
+      if (!hasAnsweredThisRound) {
+        handleTimeExpired();
+      }
+    }
+  }, 1000);
+}
+
+function handleTimeExpired() {
+  hasAnsweredThisRound = true;
+  disableCandidateButtons();
+
+  const feedback = $("#feedback-message");
+  if (feedback) {
+    feedback.textContent = "⏰ Time's up! The hacker gets through this round. Game over for this level.";
+    feedback.className = "feedback-unsafe";
+  }
+
+  const nextRoundBtn = $("#next-round-btn");
+  const nextLevelBtn = $("#next-level-btn");
+  const restartBtn = $("#restart-level-btn");
+  if (nextRoundBtn) nextRoundBtn.style.display = "none";
+  if (nextLevelBtn) nextLevelBtn.style.display = "none";
+  if (restartBtn) restartBtn.style.display = "inline-block";
+}
+
+// ==========================
+// Game rendering
+// ==========================
 
 function renderLevel(level) {
   currentLevel = level;
@@ -90,6 +246,7 @@ function renderRound() {
   const feedbackEl = $("#feedback-message");
   const nextRoundBtn = $("#next-round-btn");
   const nextLevelBtn = $("#next-level-btn");
+  const restartBtn = $("#restart-level-btn");
   const roundLabelEl = $("#round-label");
   const roundTextEl = $("#round-text");
   const progressEl = $("#round-progress");
@@ -98,6 +255,7 @@ function renderRound() {
   const stabilizerList = $("#stabilizer-list");
   const buttonsDiv = $("#candidate-buttons");
   const leftPanel = $("#left-panel");
+  const timerValueEl = $("#timer-value");
 
   if (feedbackEl) {
     feedbackEl.textContent = "";
@@ -105,8 +263,12 @@ function renderRound() {
   }
   if (nextRoundBtn) nextRoundBtn.style.display = "none";
   if (nextLevelBtn) nextLevelBtn.style.display = "none";
+  if (restartBtn) restartBtn.style.display = "none";
+  if (timerValueEl) timerValueEl.textContent = "--";
+
   if (roundLabelEl) roundLabelEl.textContent = round.label || `Round ${currentRoundIndex + 1}`;
   if (roundTextEl) roundTextEl.textContent = round.text || "";
+
   if (progressEl) {
     progressEl.textContent = `Round ${currentRoundIndex + 1} of ${level.rounds.length}`;
   }
@@ -152,48 +314,67 @@ function renderRound() {
       buttonsDiv.appendChild(btn);
     });
   }
+
+  // start timer for this round
+  const limit = level.roundTimeLimitSeconds || 0;
+  startRoundTimer(limit);
 }
 
-// ==========================
-// Interaction handlers
-// ==========================
+function disableCandidateButtons() {
+  const btns = document.querySelectorAll(".candidate-btn");
+  btns.forEach((b) => {
+    b.classList.add("disabled");
+    b.disabled = true;
+  });
+}
 
 function handleCandidateClick(candidate, round) {
+  if (hasAnsweredThisRound) return;
+
   const pauli = candidate.pauli;
   const stabs = round.stabilizers;
-
   const safe = isSafeMeasurement(pauli, stabs);
 
   const feedback = $("#feedback-message");
   const leftPanel = $("#left-panel");
   const nextRoundBtn = $("#next-round-btn");
   const nextLevelBtn = $("#next-level-btn");
+  const restartBtn = $("#restart-level-btn");
+  const timerValueEl = $("#timer-value");
+
+  clearRoundTimer();
+  if (timerValueEl) timerValueEl.textContent = "--";
 
   if (safe) {
     if (feedback) {
       feedback.textContent = `✅ Safe: ${candidate.label} anticommutes with at least one stabilizer generator, so it only updates the stabilizer and leaves the logical info intact.`;
       feedback.className = "feedback-safe";
     }
-  } else {
-    if (feedback) {
-      feedback.textContent = `❌ Unsafe: ${candidate.label} commutes with all stabilizers here (in this toy level), so we treat it as measuring a logical operator. Your encoded state would be damaged.`;
-      feedback.className = "feedback-unsafe";
-    }
-    if (leftPanel) {
-      leftPanel.classList.remove("shake");
-      void leftPanel.offsetWidth; // force reflow so animation can restart
-      leftPanel.classList.add("shake");
-    }
-  }
-
-  if (!hasAnsweredThisRound) {
+    disableCandidateButtons();
     hasAnsweredThisRound = true;
+
     const isLastRound = currentRoundIndex === currentLevel.rounds.length - 1;
     if (isLastRound) {
       if (nextLevelBtn) nextLevelBtn.style.display = "inline-block";
     } else {
       if (nextRoundBtn) nextRoundBtn.style.display = "inline-block";
     }
+  } else {
+    if (feedback) {
+      feedback.textContent = `❌ Unsafe: ${candidate.label} commutes with all stabilizers in this toy level, so we treat it as measuring a logical operator. The logical qubit collapses – game over.`;
+      feedback.className = "feedback-unsafe";
+    }
+    if (leftPanel) {
+      leftPanel.classList.remove("shake");
+      void leftPanel.offsetWidth; // restart animation
+      leftPanel.classList.add("shake");
+    }
+    disableCandidateButtons();
+    hasAnsweredThisRound = true;
+
+    if (nextRoundBtn) nextRoundBtn.style.display = "none";
+    if (nextLevelBtn) nextLevelBtn.style.display = "none";
+    if (restartBtn) restartBtn.style.display = "inline-block";
   }
 }
 
@@ -205,40 +386,46 @@ function goToNextRound() {
   }
 }
 
+function restartLevel() {
+  if (!currentLevel) return;
+  currentRoundIndex = 0;
+  renderLevel(currentLevel);
+}
+
 // ==========================
 // Initialization
 // ==========================
 
-window.addEventListener("DOMContentLoaded", () => {
-  console.log("DOM fully loaded, wiring up handlers…");
+window.addEventListener("DOMContentLoaded", async () => {
+  console.log("DOM fully loaded, setting up...");
 
-  const startBtn = $("#start-btn");
+  const slidesPrevBtn = $("#slide-prev-btn");
+  const slidesNextBtn = $("#slide-next-btn");
+  const slidesStartBtn = $("#slide-start-level-btn");
   const nextRoundBtn = $("#next-round-btn");
   const nextLevelBtn = $("#next-level-btn");
-  const introScreen = $("#intro-screen");
+  const restartBtn = $("#restart-level-btn");
   const gameContainer = $("#game-container");
 
-  if (!startBtn) {
-    console.error("start-btn not found in DOM");
-    return;
+  if (slidesPrevBtn) {
+    slidesPrevBtn.addEventListener("click", () => {
+      prevSlide();
+    });
   }
 
-  startBtn.addEventListener("click", async () => {
-    console.log("Start button clicked");
-    if (introScreen) introScreen.classList.add("hidden");
-    if (gameContainer) gameContainer.classList.remove("hidden");
+  if (slidesNextBtn) {
+    slidesNextBtn.addEventListener("click", () => {
+      nextSlide();
+    });
+  }
 
-    try {
-      const level = await loadLevel("level-1");
-      renderLevel(level);
-    } catch (err) {
-      console.error("Error loading level:", err);
-      const levelTitleEl = $("#game-level");
-      const levelDescEl = $("#level-description");
-      if (levelTitleEl) levelTitleEl.textContent = "Error loading level";
-      if (levelDescEl) levelDescEl.textContent = String(err);
-    }
-  });
+  if (slidesStartBtn) {
+    slidesStartBtn.addEventListener("click", () => {
+      // finishing slides explicitly from button
+      hideSlides();
+      if (slidesDoneCallback) slidesDoneCallback();
+    });
+  }
 
   if (nextRoundBtn) {
     nextRoundBtn.addEventListener("click", () => {
@@ -248,7 +435,35 @@ window.addEventListener("DOMContentLoaded", () => {
 
   if (nextLevelBtn) {
     nextLevelBtn.addEventListener("click", () => {
-      alert("Level 2 will add Bob's entangling unitaries and extractability. (Coming soon!)");
+      alert("Level 2 will add Bob's entangling unitaries and extractability. (Dummy placeholder for now.)");
     });
+  }
+
+  if (restartBtn) {
+    restartBtn.addEventListener("click", () => {
+      restartLevel();
+    });
+  }
+
+  try {
+    const level = await loadLevel("level-1");
+    // show slides first, then start the level
+    const onSlidesDone = () => {
+      if (gameContainer) gameContainer.classList.remove("hidden");
+      renderLevel(level);
+    };
+    if (level.introSlides && level.introSlides.length > 0) {
+      showSlides(level.introSlides, onSlidesDone);
+    } else {
+      hideSlides();
+      onSlidesDone();
+    }
+  } catch (err) {
+    console.error("Error loading level:", err);
+    if (gameContainer) gameContainer.classList.remove("hidden");
+    const levelTitleEl = $("#game-level");
+    const levelDescEl = $("#level-description");
+    if (levelTitleEl) levelTitleEl.textContent = "Error loading level";
+    if (levelDescEl) levelDescEl.textContent = String(err);
   }
 });

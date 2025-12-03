@@ -8,7 +8,7 @@ body {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 #game-container {
@@ -40,9 +40,21 @@ body {
   margin-top: 4px;
 }
 
+#header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
 #round-progress {
   font-size: 0.85rem;
   color: #c5c5ff;
+}
+
+#timer-box {
+  font-size: 0.85rem;
+  color: #f97373;
 }
 
 /* Main layout */
@@ -171,17 +183,22 @@ body {
   font-family: "JetBrains Mono", "Fira Code", monospace;
   font-size: 0.9rem;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.1s ease;
+  transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.1s ease, opacity 0.1s ease;
 }
 
-.candidate-btn:hover {
+.candidate-btn:hover:not(.disabled) {
   background: #1e2654;
   box-shadow: 0 0 8px rgba(70, 104, 255, 0.4);
   transform: translateY(-1px);
 }
 
-.candidate-btn:active {
+.candidate-btn:active:not(.disabled) {
   transform: translateY(1px);
+}
+
+.candidate-btn.disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 /* Feedback */
@@ -227,6 +244,7 @@ body {
 }
 
 #next-round-btn,
+#restart-level-btn,
 #next-level-btn {
   padding: 6px 10px;
   border-radius: 6px;
@@ -245,6 +263,16 @@ body {
   background: #16a34a;
 }
 
+#restart-level-btn {
+  background: #f97316;
+  color: #041016;
+  margin-right: 8px;
+}
+
+#restart-level-btn:hover {
+  background: #ea580c;
+}
+
 #next-level-btn {
   background: #3b82f6;
   color: white;
@@ -254,9 +282,9 @@ body {
   background: #2563eb;
 }
 
-/* Intro screen */
+/* Slides overlay */
 
-#intro-screen {
+#slides-overlay {
   position: fixed;
   inset: 0;
   background: radial-gradient(circle at top, #1e293b 0, #020617 55%);
@@ -266,37 +294,53 @@ body {
   z-index: 50;
 }
 
-#intro-content {
-  max-width: 600px;
-  background: rgba(15, 23, 42, 0.95);
+#slides-content {
+  max-width: 800px;
+  width: 90%;
+  background: rgba(15, 23, 42, 0.97);
   border-radius: 12px;
   padding: 20px 22px;
   box-shadow: 0 0 30px rgba(0,0,0,0.6);
 }
 
-#intro-content h1 {
+#slides-content h1 {
   margin-top: 0;
   margin-bottom: 12px;
 }
 
-#intro-content p {
+#slide-main {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+#slide-text {
   font-size: 0.95rem;
   line-height: 1.4;
 }
 
-#intro-content .small-note {
-  font-size: 0.85rem;
-  color: #cbd5f5;
+#slide-media {
+  text-align: center;
+}
+
+#slide-media img {
+  max-width: 100%;
+  max-height: 160px;
+  object-fit: contain;
+  margin-bottom: 4px;
+}
+
+#slides-controls {
+  display: flex;
+  justify-content: space-between;
   margin-top: 8px;
 }
 
-.mathlike {
-  font-family: "JetBrains Mono", "Fira Code", monospace;
-}
+/* Buttons used in slides */
 
-#start-btn {
-  margin-top: 12px;
-  padding: 8px 14px;
+.primary-btn {
+  padding: 6px 14px;
   border-radius: 8px;
   border: none;
   background: #4f46e5;
@@ -305,6 +349,32 @@ body {
   cursor: pointer;
 }
 
-#start-btn:hover {
+.primary-btn:hover {
   background: #4338ca;
+}
+
+.secondary-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #4b5563;
+  background: #111827;
+  color: #f9fafb;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.secondary-btn:hover {
+  background: #1f2937;
+}
+
+/* Small screens */
+
+@media (max-width: 800px) {
+  #game-main {
+    grid-template-columns: 1fr;
+  }
+
+  #slide-main {
+    grid-template-columns: 1fr;
+  }
 }
