@@ -1,11 +1,13 @@
-// ===== Utility: Pauli commutation =====
+// ==========================
+// Utility: Pauli commutation
+// ==========================
 
 // Given two single-qubit Paulis a,b in {I,X,Y,Z}, do they anticommute?
 function singleAnticommute(a, b) {
   if (a === 'I' || b === 'I' || a === b) {
     return false;
   }
-  // X,Y,Z anticommute whenever they are different non-I Paulis
+  // X, Y, Z anticommute whenever they are different non-I Paulis
   return true;
 }
 
@@ -35,19 +37,21 @@ function isSafeMeasurement(candidatePauli, stabilizers) {
   return false;
 }
 
-// ===== DOM helpers =====
+// ==========================
+// DOM helpers & game state
+// ==========================
 
 function $(selector) {
   return document.querySelector(selector);
 }
 
-// ===== Game state =====
-
 let currentLevel = null;
 let currentRoundIndex = 0;
 let hasAnsweredThisRound = false;
 
-// ===== Level loading and rendering =====
+// ==========================
+// Level loading & rendering
+// ==========================
 
 async function loadLevel(levelId) {
   const response = await fetch(`levels/${levelId}.json`);
@@ -61,74 +65,98 @@ async function loadLevel(levelId) {
 function renderLevel(level) {
   currentLevel = level;
   currentRoundIndex = 0;
-  $("#game-level").textContent = level.title;
-  $("#level-description").textContent = level.description;
-  $("#round-progress").textContent = `Round ${currentRoundIndex + 1} of ${level.rounds.length}`;
+
+  const levelTitleEl = $("#game-level");
+  const levelDescEl = $("#level-description");
+  const progressEl = $("#round-progress");
+
+  if (levelTitleEl) levelTitleEl.textContent = level.title || "Unknown level";
+  if (levelDescEl) levelDescEl.textContent = level.description || "";
+  if (progressEl) {
+    progressEl.textContent = `Round ${currentRoundIndex + 1} of ${level.rounds.length}`;
+  }
+
   renderRound();
 }
 
 function renderRound() {
   const level = currentLevel;
+  if (!level) return;
+
   const round = level.rounds[currentRoundIndex];
 
   hasAnsweredThisRound = false;
-  $("#feedback-message").textContent = "";
-  $("#feedback-message").className = "";
-  $("#next-round-btn").style.display = "none";
-  $("#next-level-btn").style.display = "none";
 
-  // Round labels/text
-  $("#round-label").textContent = round.label || `Round ${currentRoundIndex + 1}`;
-  $("#round-text").textContent = round.text || "";
-
-  // Update progress
-  $("#round-progress").textContent = `Round ${currentRoundIndex + 1} of ${level.rounds.length}`;
-
-  // Graph image
+  const feedbackEl = $("#feedback-message");
+  const nextRoundBtn = $("#next-round-btn");
+  const nextLevelBtn = $("#next-level-btn");
+  const roundLabelEl = $("#round-label");
+  const roundTextEl = $("#round-text");
+  const progressEl = $("#round-progress");
   const graphImg = $("#graph-image");
-  if (round.graphImage) {
-    graphImg.src = round.graphImage;
-    graphImg.style.display = "block";
-  } else {
-    graphImg.style.display = "none";
-  }
-
-  // Circuit image
   const circImg = $("#circuit-image");
-  if (round.circuitImage) {
-    circImg.src = round.circuitImage;
-    circImg.style.display = "block";
-  } else {
-    circImg.style.display = "none";
+  const stabilizerList = $("#stabilizer-list");
+  const buttonsDiv = $("#candidate-buttons");
+  const leftPanel = $("#left-panel");
+
+  if (feedbackEl) {
+    feedbackEl.textContent = "";
+    feedbackEl.className = "";
+  }
+  if (nextRoundBtn) nextRoundBtn.style.display = "none";
+  if (nextLevelBtn) nextLevelBtn.style.display = "none";
+  if (roundLabelEl) roundLabelEl.textContent = round.label || `Round ${currentRoundIndex + 1}`;
+  if (roundTextEl) roundTextEl.textContent = round.text || "";
+  if (progressEl) {
+    progressEl.textContent = `Round ${currentRoundIndex + 1} of ${level.rounds.length}`;
   }
 
-  // Stabilizers
-  const stabilizerList = $("#stabilizer-list");
-  stabilizerList.innerHTML = "";
-  round.stabilizers.forEach((S, idx) => {
-    const li = document.createElement("li");
-    li.textContent = `S${idx + 1} = ${S}`;
-    stabilizerList.appendChild(li);
-  });
+  if (graphImg) {
+    if (round.graphImage) {
+      graphImg.src = round.graphImage;
+      graphImg.style.display = "block";
+    } else {
+      graphImg.style.display = "none";
+    }
+  }
 
-  // Candidate buttons
-  const buttonsDiv = $("#candidate-buttons");
-  buttonsDiv.innerHTML = "";
-  const leftPanel = $("#left-panel");
-  leftPanel.classList.remove("shake");
+  if (circImg) {
+    if (round.circuitImage) {
+      circImg.src = round.circuitImage;
+      circImg.style.display = "block";
+    } else {
+      circImg.style.display = "none";
+    }
+  }
 
-  round.candidates.forEach((cand) => {
-    const btn = document.createElement("button");
-    btn.className = "candidate-btn";
-    btn.textContent = cand.label;
-    btn.addEventListener("click", () => {
-      handleCandidateClick(cand, round);
+  if (stabilizerList) {
+    stabilizerList.innerHTML = "";
+    round.stabilizers.forEach((S, idx) => {
+      const li = document.createElement("li");
+      li.textContent = `S${idx + 1} = ${S}`;
+      stabilizerList.appendChild(li);
     });
-    buttonsDiv.appendChild(btn);
-  });
+  }
+
+  if (buttonsDiv) {
+    buttonsDiv.innerHTML = "";
+    if (leftPanel) leftPanel.classList.remove("shake");
+
+    round.candidates.forEach((cand) => {
+      const btn = document.createElement("button");
+      btn.className = "candidate-btn";
+      btn.textContent = cand.label;
+      btn.addEventListener("click", () => {
+        handleCandidateClick(cand, round);
+      });
+      buttonsDiv.appendChild(btn);
+    });
+  }
 }
 
-// ===== Interaction handlers =====
+// ==========================
+// Interaction handlers
+// ==========================
 
 function handleCandidateClick(candidate, round) {
   const pauli = candidate.pauli;
@@ -138,26 +166,33 @@ function handleCandidateClick(candidate, round) {
 
   const feedback = $("#feedback-message");
   const leftPanel = $("#left-panel");
+  const nextRoundBtn = $("#next-round-btn");
+  const nextLevelBtn = $("#next-level-btn");
 
   if (safe) {
-    feedback.textContent = `✅ Safe: ${candidate.label} anticommutes with at least one stabilizer generator, so it only updates the stabilizer and leaves the logical info intact.`;
-    feedback.className = "feedback-safe";
+    if (feedback) {
+      feedback.textContent = `✅ Safe: ${candidate.label} anticommutes with at least one stabilizer generator, so it only updates the stabilizer and leaves the logical info intact.`;
+      feedback.className = "feedback-safe";
+    }
   } else {
-    feedback.textContent = `❌ Unsafe: ${candidate.label} commutes with all stabilizers here (in this toy level), so we treat it as measuring a logical operator. Your encoded state would be damaged.`;
-    feedback.className = "feedback-unsafe";
-    leftPanel.classList.remove("shake");
-    void leftPanel.offsetWidth; // force reflow so animation can restart
-    leftPanel.classList.add("shake");
+    if (feedback) {
+      feedback.textContent = `❌ Unsafe: ${candidate.label} commutes with all stabilizers here (in this toy level), so we treat it as measuring a logical operator. Your encoded state would be damaged.`;
+      feedback.className = "feedback-unsafe";
+    }
+    if (leftPanel) {
+      leftPanel.classList.remove("shake");
+      void leftPanel.offsetWidth; // force reflow so animation can restart
+      leftPanel.classList.add("shake");
+    }
   }
 
-  // After first answer, show next-round or next-level button.
   if (!hasAnsweredThisRound) {
     hasAnsweredThisRound = true;
-    const isLastRound = (currentRoundIndex === currentLevel.rounds.length - 1);
+    const isLastRound = currentRoundIndex === currentLevel.rounds.length - 1;
     if (isLastRound) {
-      $("#next-level-btn").style.display = "inline-block";
+      if (nextLevelBtn) nextLevelBtn.style.display = "inline-block";
     } else {
-      $("#next-round-btn").style.display = "inline-block";
+      if (nextRoundBtn) nextRoundBtn.style.display = "inline-block";
     }
   }
 }
@@ -170,28 +205,40 @@ function goToNextRound() {
   }
 }
 
-// ===== Initialization =====
+// ==========================
+// Initialization
+// ==========================
 
-window.addEventListener("DOMContentLoaded", async () => {
-  // Hook up buttons
+window.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM fully loaded, wiring up handlers…");
+
   const startBtn = $("#start-btn");
   const nextRoundBtn = $("#next-round-btn");
   const nextLevelBtn = $("#next-level-btn");
+  const introScreen = $("#intro-screen");
+  const gameContainer = $("#game-container");
 
-  if (startBtn) {
-    startBtn.addEventListener("click", async () => {
-      $("#intro-screen").classList.add("hidden");
-      $("#game-container").classList.remove("hidden");
-      try {
-        const level = await loadLevel("level-1");
-        renderLevel(level);
-      } catch (err) {
-        console.error(err);
-        $("#game-level").textContent = "Error loading level";
-        $("#level-description").textContent = err.toString();
-      }
-    });
+  if (!startBtn) {
+    console.error("start-btn not found in DOM");
+    return;
   }
+
+  startBtn.addEventListener("click", async () => {
+    console.log("Start button clicked");
+    if (introScreen) introScreen.classList.add("hidden");
+    if (gameContainer) gameContainer.classList.remove("hidden");
+
+    try {
+      const level = await loadLevel("level-1");
+      renderLevel(level);
+    } catch (err) {
+      console.error("Error loading level:", err);
+      const levelTitleEl = $("#game-level");
+      const levelDescEl = $("#level-description");
+      if (levelTitleEl) levelTitleEl.textContent = "Error loading level";
+      if (levelDescEl) levelDescEl.textContent = String(err);
+    }
+  });
 
   if (nextRoundBtn) {
     nextRoundBtn.addEventListener("click", () => {
