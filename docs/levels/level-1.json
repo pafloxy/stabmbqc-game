@@ -1,21 +1,49 @@
 {
   "id": "level-1",
   "title": "Level 1 – Don’t Measure the Logical Qubit",
-  "description": "Alice has a 3-qubit code stabilized by ZZI and IZZ. Charlie offers three possible Pauli measurements. Pick one that is safe: it should anticommute with at least one stabilizer generator, so it only changes the stabilizer and not the logical information.",
-  "numQubits": 3,
-  "stabilizers": ["ZZI", "IZZ"],
-  "candidates": [
+  "description": "In each round, Charlie offers some Pauli measurements on Alice's code. Your job: pick a measurement that is safe – it should anticommute with at least one stabilizer generator, so that it only updates the stabilizer and not the logical information.",
+  "rounds": [
     {
-      "label": "Z I I",
-      "pauli": "ZII"
+      "id": 1,
+      "label": "Round 1",
+      "text": "Warm-up: 3-qubit chain code. Only one of these is safe.",
+      "numQubits": 3,
+      "stabilizers": ["ZZI", "IZZ"],
+      "candidates": [
+        { "label": "Z I I", "pauli": "ZII" },
+        { "label": "X I I", "pauli": "XII" },
+        { "label": "X X X", "pauli": "XXX" }
+      ],
+      "graphImage": "assets/level-1-round1-graph.png",
+      "circuitImage": "assets/level-1-round1-circuit.png"
     },
     {
-      "label": "X I I",
-      "pauli": "XII"
+      "id": 2,
+      "label": "Round 2",
+      "text": "Same code, but now Charlie targets the middle qubit.",
+      "numQubits": 3,
+      "stabilizers": ["ZZI", "IZZ"],
+      "candidates": [
+        { "label": "I Z I", "pauli": "IZI" },
+        { "label": "I X I", "pauli": "IXI" },
+        { "label": "Z Z Z", "pauli": "ZZZ" }
+      ],
+      "graphImage": "assets/level-1-round2-graph.png",
+      "circuitImage": "assets/level-1-round2-circuit.png"
     },
     {
-      "label": "X X X",
-      "pauli": "XXX"
+      "id": 3,
+      "label": "Round 3",
+      "text": "A slightly more evil set of options. Think about which ones are likely logical.",
+      "numQubits": 3,
+      "stabilizers": ["ZZI", "IZZ"],
+      "candidates": [
+        { "label": "I I Z", "pauli": "IIZ" },
+        { "label": "X X I", "pauli": "XXI" },
+        { "label": "X X X", "pauli": "XXX" }
+      ],
+      "graphImage": "assets/level-1-round3-graph.png",
+      "circuitImage": "assets/level-1-round3-circuit.png"
     }
   ]
 }

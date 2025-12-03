@@ -41,7 +41,13 @@ function $(selector) {
   return document.querySelector(selector);
 }
 
-// ===== Game logic =====
+// ===== Game state =====
+
+let currentLevel = null;
+let currentRoundIndex = 0;
+let hasAnsweredThisRound = false;
+
+// ===== Level loading and rendering =====
 
 async function loadLevel(levelId) {
   const response = await fetch(`levels/${levelId}.json`);
@@ -53,51 +59,80 @@ async function loadLevel(levelId) {
 }
 
 function renderLevel(level) {
-  // Set title and level text
+  currentLevel = level;
+  currentRoundIndex = 0;
   $("#game-level").textContent = level.title;
   $("#level-description").textContent = level.description;
+  $("#round-progress").textContent = `Round ${currentRoundIndex + 1} of ${level.rounds.length}`;
+  renderRound();
+}
 
-  // Set graph image if provided
+function renderRound() {
+  const level = currentLevel;
+  const round = level.rounds[currentRoundIndex];
+
+  hasAnsweredThisRound = false;
+  $("#feedback-message").textContent = "";
+  $("#feedback-message").className = "";
+  $("#next-round-btn").style.display = "none";
+  $("#next-level-btn").style.display = "none";
+
+  // Round labels/text
+  $("#round-label").textContent = round.label || `Round ${currentRoundIndex + 1}`;
+  $("#round-text").textContent = round.text || "";
+
+  // Update progress
+  $("#round-progress").textContent = `Round ${currentRoundIndex + 1} of ${level.rounds.length}`;
+
+  // Graph image
   const graphImg = $("#graph-image");
-  if (level.graphImage) {
-    graphImg.src = level.graphImage;
+  if (round.graphImage) {
+    graphImg.src = round.graphImage;
     graphImg.style.display = "block";
   } else {
     graphImg.style.display = "none";
   }
 
-  // Render stabilizers
+  // Circuit image
+  const circImg = $("#circuit-image");
+  if (round.circuitImage) {
+    circImg.src = round.circuitImage;
+    circImg.style.display = "block";
+  } else {
+    circImg.style.display = "none";
+  }
+
+  // Stabilizers
   const stabilizerList = $("#stabilizer-list");
   stabilizerList.innerHTML = "";
-  level.stabilizers.forEach((S, idx) => {
+  round.stabilizers.forEach((S, idx) => {
     const li = document.createElement("li");
     li.textContent = `S${idx + 1} = ${S}`;
     stabilizerList.appendChild(li);
   });
 
-  // Render candidate buttons
+  // Candidate buttons
   const buttonsDiv = $("#candidate-buttons");
   buttonsDiv.innerHTML = "";
-  $("#feedback-message").textContent = "";
-  $("#feedback-message").className = "";
   const leftPanel = $("#left-panel");
   leftPanel.classList.remove("shake");
 
-  level.candidates.forEach((cand) => {
+  round.candidates.forEach((cand) => {
     const btn = document.createElement("button");
     btn.className = "candidate-btn";
     btn.textContent = cand.label;
     btn.addEventListener("click", () => {
-      handleCandidateClick(cand, level);
+      handleCandidateClick(cand, round);
     });
     buttonsDiv.appendChild(btn);
   });
 }
 
-// Handle a click on a candidate measurement
-function handleCandidateClick(candidate, level) {
+// ===== Interaction handlers =====
+
+function handleCandidateClick(candidate, round) {
   const pauli = candidate.pauli;
-  const stabs = level.stabilizers;
+  const stabs = round.stabilizers;
 
   const safe = isSafeMeasurement(pauli, stabs);
 
@@ -108,24 +143,65 @@ function handleCandidateClick(candidate, level) {
     feedback.textContent = `✅ Safe: ${candidate.label} anticommutes with at least one stabilizer generator, so it only updates the stabilizer and leaves the logical info intact.`;
     feedback.className = "feedback-safe";
   } else {
-    feedback.textContent = `❌ Unsafe: ${candidate.label} commutes with all stabilizers here, so in this toy level we treat it as measuring a logical operator. Your encoded state would be damaged.`;
+    feedback.textContent = `❌ Unsafe: ${candidate.label} commutes with all stabilizers here (in this toy level), so we treat it as measuring a logical operator. Your encoded state would be damaged.`;
     feedback.className = "feedback-unsafe";
-    // shake the left panel for dramatic effect
     leftPanel.classList.remove("shake");
     void leftPanel.offsetWidth; // force reflow so animation can restart
     leftPanel.classList.add("shake");
+  }
+
+  // After first answer, show next-round or next-level button.
+  if (!hasAnsweredThisRound) {
+    hasAnsweredThisRound = true;
+    const isLastRound = (currentRoundIndex === currentLevel.rounds.length - 1);
+    if (isLastRound) {
+      $("#next-level-btn").style.display = "inline-block";
+    } else {
+      $("#next-round-btn").style.display = "inline-block";
+    }
+  }
+}
+
+function goToNextRound() {
+  if (!currentLevel) return;
+  if (currentRoundIndex < currentLevel.rounds.length - 1) {
+    currentRoundIndex += 1;
+    renderRound();
   }
 }
 
 // ===== Initialization =====
 
 window.addEventListener("DOMContentLoaded", async () => {
-  try {
-    const level = await loadLevel("level-1");
-    renderLevel(level);
-  } catch (err) {
-    console.error(err);
-    $("#game-level").textContent = "Error loading level";
-    $("#level-description").textContent = err.toString();
+  // Hook up buttons
+  const startBtn = $("#start-btn");
+  const nextRoundBtn = $("#next-round-btn");
+  const nextLevelBtn = $("#next-level-btn");
+
+  if (startBtn) {
+    startBtn.addEventListener("click", async () => {
+      $("#intro-screen").classList.add("hidden");
+      $("#game-container").classList.remove("hidden");
+      try {
+        const level = await loadLevel("level-1");
+        renderLevel(level);
+      } catch (err) {
+        console.error(err);
+        $("#game-level").textContent = "Error loading level";
+        $("#level-description").textContent = err.toString();
+      }
+    });
+  }
+
+  if (nextRoundBtn) {
+    nextRoundBtn.addEventListener("click", () => {
+      goToNextRound();
+    });
+  }
+
+  if (nextLevelBtn) {
+    nextLevelBtn.addEventListener("click", () => {
+      alert("Level 2 will add Bob's entangling unitaries and extractability. (Coming soon!)");
+    });
   }
 });

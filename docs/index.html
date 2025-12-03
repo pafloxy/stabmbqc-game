@@ -6,16 +6,44 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="game-container">
+  <!-- Intro screen -->
+  <div id="intro-screen">
+    <div id="intro-content">
+      <h1>Stabilizer Survival</h1>
+      <p>
+        Alice has an encoded stabilizer state <span class="mathlike">|𝒮, ψ⟩</span>. 
+        Charlie is secretly on her side, but is forced by Bob to perform a Pauli measurement each round.
+      </p>
+      <p>
+        Your task: in each round, choose a Pauli measurement that is <strong>safe</strong> – it should anticommute with at least one stabilizer generator, so it only updates the stabilizer and does not measure a logical operator.
+      </p>
+      <p class="small-note">
+        Level 1: no fancy unitaries yet. This is pure stabilizer intuition training.
+      </p>
+      <button id="start-btn">Start Level 1</button>
+    </div>
+  </div>
+
+  <div id="game-container" class="hidden">
     <header id="game-header">
-      <h1 id="game-title">Stabilizer Survival</h1>
-      <div id="game-level">Loading level...</div>
+      <div>
+        <h1 id="game-title">Stabilizer Survival</h1>
+        <div id="game-level">Loading level...</div>
+        <div id="round-label"></div>
+      </div>
+      <div id="round-progress"></div>
     </header>
 
     <main id="game-main">
       <section id="left-panel">
         <div id="graph-wrapper">
           <img id="graph-image" alt="Code graph" />
+        </div>
+        <div id="circuit-box">
+          <h2>Circuit view</h2>
+          <div id="circuit-wrapper">
+            <img id="circuit-image" alt="Circuit diagram" />
+          </div>
         </div>
         <div id="stabilizer-box">
           <h2>Stabilizers</h2>
@@ -26,6 +54,7 @@
       <section id="right-panel">
         <div id="description-box">
           <p id="level-description"></p>
+          <p id="round-text" class="round-text"></p>
         </div>
 
         <div id="choices-box">
@@ -38,8 +67,11 @@
         </div>
 
         <div id="controls-box">
+          <button id="next-round-btn" class="secondary-btn" style="display:none;">
+            Next round ⮞
+          </button>
           <button id="next-level-btn" style="display:none;">
-            Next level (coming soon)
+            Level 2 (coming soon)
           </button>
         </div>
       </section>
