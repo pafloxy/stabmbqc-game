@@ -2,17 +2,13 @@
 // Utility: Pauli commutation
 // ==========================
 
-// Given two single-qubit Paulis a,b in {I,X,Y,Z}, do they anticommute?
 function singleAnticommute(a, b) {
   if (a === 'I' || b === 'I' || a === b) {
     return false;
   }
-  // X, Y, Z anticommute whenever they are different non-I Paulis
   return true;
 }
 
-// Given two Pauli strings over {I,X,Y,Z}, decide if they anticommute.
-// They anticommute iff the number of positions with singleAnticommute(a,b) is odd.
 function paulisAnticommute(p1, p2) {
   if (p1.length !== p2.length) {
     throw new Error("Pauli strings must have same length");
@@ -26,8 +22,6 @@ function paulisAnticommute(p1, p2) {
   return (count % 2) === 1;
 }
 
-// Check if a candidate measurement M is safe given a list of stabilizer generators.
-// Rule (Level 1): safe iff M anticommutes with at least one stabilizer generator.
 function isSafeMeasurement(candidatePauli, stabilizers) {
   for (const S of stabilizers) {
     if (paulisAnticommute(candidatePauli, S)) {
@@ -46,6 +40,7 @@ function $(selector) {
 }
 
 let currentLevel = null;
+let level1Data = null;
 let currentRoundIndex = 0;
 let hasAnsweredThisRound = false;
 
@@ -57,6 +52,7 @@ let slidesDoneCallback = null;
 // timer state
 let roundTimerId = null;
 let remainingSeconds = 0;
+let timerPaused = false;
 
 // ==========================
 // Level loading
@@ -93,7 +89,6 @@ function hideSlides() {
 
 function renderSlide() {
   if (!currentSlides || currentSlides.length === 0) {
-    // nothing to show
     hideSlides();
     if (slidesDoneCallback) slidesDoneCallback();
     return;
@@ -144,7 +139,6 @@ function nextSlide() {
     currentSlideIndex += 1;
     renderSlide();
   } else {
-    // done
     hideSlides();
     if (slidesDoneCallback) slidesDoneCallback();
   }
@@ -156,6 +150,37 @@ function prevSlide() {
     currentSlideIndex -= 1;
     renderSlide();
   }
+}
+
+// ==========================
+// Info overlay
+// ==========================
+
+function showInfoOverlay() {
+  const infoOverlay = $("#info-overlay");
+  if (!infoOverlay) return;
+
+  // pause timer if running
+  if (!hasAnsweredThisRound && remainingSeconds > 0 && roundTimerId !== null) {
+    clearRoundTimer();
+    timerPaused = true;
+  } else {
+    timerPaused = false;
+  }
+
+  infoOverlay.classList.remove("hidden");
+}
+
+function hideInfoOverlay() {
+  const infoOverlay = $("#info-overlay");
+  if (!infoOverlay) return;
+
+  infoOverlay.classList.add("hidden");
+
+  if (timerPaused && !hasAnsweredThisRound && remainingSeconds > 0) {
+    startRoundTimer(remainingSeconds);
+  }
+  timerPaused = false;
 }
 
 // ==========================
@@ -315,7 +340,6 @@ function renderRound() {
     });
   }
 
-  // start timer for this round
   const limit = level.roundTimeLimitSeconds || 0;
   startRoundTimer(limit);
 }
@@ -366,7 +390,7 @@ function handleCandidateClick(candidate, round) {
     }
     if (leftPanel) {
       leftPanel.classList.remove("shake");
-      void leftPanel.offsetWidth; // restart animation
+      void leftPanel.offsetWidth;
       leftPanel.classList.add("shake");
     }
     disableCandidateButtons();
@@ -392,6 +416,28 @@ function restartLevel() {
   renderLevel(currentLevel);
 }
 
+function restartGame() {
+  clearRoundTimer();
+  hasAnsweredThisRound = false;
+  currentRoundIndex = 0;
+  const gameContainer = $("#game-container");
+  if (gameContainer) gameContainer.classList.add("hidden");
+
+  const onSlidesDone = () => {
+    if (gameContainer) gameContainer.classList.remove("hidden");
+    if (level1Data) {
+      renderLevel(level1Data);
+    }
+  };
+
+  if (level1Data && level1Data.introSlides && level1Data.introSlides.length > 0) {
+    showSlides(level1Data.introSlides, onSlidesDone);
+  } else {
+    hideSlides();
+    onSlidesDone();
+  }
+}
+
 // ==========================
 // Initialization
 // ==========================
@@ -402,9 +448,13 @@ window.addEventListener("DOMContentLoaded", async () => {
   const slidesPrevBtn = $("#slide-prev-btn");
   const slidesNextBtn = $("#slide-next-btn");
   const slidesStartBtn = $("#slide-start-level-btn");
+  const slidesSkipBtn = $("#slide-skip-btn");
   const nextRoundBtn = $("#next-round-btn");
   const nextLevelBtn = $("#next-level-btn");
-  const restartBtn = $("#restart-level-btn");
+  const restartLevelBtn = $("#restart-level-btn");
+  const restartGameBtn = $("#restart-game-btn");
+  const rulesBtn = $("#rules-btn");
+  const infoCloseBtn = $("#info-close-btn");
   const gameContainer = $("#game-container");
 
   if (slidesPrevBtn) {
@@ -421,7 +471,13 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   if (slidesStartBtn) {
     slidesStartBtn.addEventListener("click", () => {
-      // finishing slides explicitly from button
+      hideSlides();
+      if (slidesDoneCallback) slidesDoneCallback();
+    });
+  }
+
+  if (slidesSkipBtn) {
+    slidesSkipBtn.addEventListener("click", () => {
       hideSlides();
       if (slidesDoneCallback) slidesDoneCallback();
     });
@@ -439,21 +495,41 @@ window.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  if (restartBtn) {
-    restartBtn.addEventListener("click", () => {
+  if (restartLevelBtn) {
+    restartLevelBtn.addEventListener("click", () => {
       restartLevel();
+    });
+  }
+
+  if (restartGameBtn) {
+    restartGameBtn.addEventListener("click", () => {
+      restartGame();
+    });
+  }
+
+  if (rulesBtn) {
+    rulesBtn.addEventListener("click", () => {
+      showInfoOverlay();
+    });
+  }
+
+  if (infoCloseBtn) {
+    infoCloseBtn.addEventListener("click", () => {
+      hideInfoOverlay();
     });
   }
 
   try {
     const level = await loadLevel("level-1");
-    // show slides first, then start the level
+    level1Data = level;
+
     const onSlidesDone = () => {
       if (gameContainer) gameContainer.classList.remove("hidden");
-      renderLevel(level);
+      renderLevel(level1Data);
     };
-    if (level.introSlides && level.introSlides.length > 0) {
-      showSlides(level.introSlides, onSlidesDone);
+
+    if (level1Data.introSlides && level1Data.introSlides.length > 0) {
+      showSlides(level1Data.introSlides, onSlidesDone);
     } else {
       hideSlides();
       onSlidesDone();

@@ -18,11 +18,34 @@
         </div>
       </div>
       <div id="slides-controls">
-        <button id="slide-prev-btn" class="secondary-btn">⮜ Back</button>
-        <button id="slide-next-btn" class="secondary-btn">Next ⮞</button>
-        <button id="slide-start-level-btn" class="primary-btn" style="display:none;">
-          Start level
-        </button>
+        <div id="slides-left-buttons">
+          <button id="slide-prev-btn" class="secondary-btn">⮜ Back</button>
+          <button id="slide-next-btn" class="secondary-btn">Next ⮞</button>
+        </div>
+        <div id="slides-right-buttons">
+          <button id="slide-skip-btn" class="secondary-btn">Skip intro</button>
+          <button id="slide-start-level-btn" class="primary-btn" style="display:none;">
+            Start level
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rules / info overlay -->
+  <div id="info-overlay" class="hidden">
+    <div id="info-content">
+      <h1>Game Guidelines (Dummy)</h1>
+      <ul>
+        <li>You play as Alice, protecting a logical qubit encoded in a stabilizer code.</li>
+        <li>Each round, Charlie must perform one Pauli measurement. You choose which one.</li>
+        <li>Safe choice: a Pauli that anticommutes with at least one stabilizer generator (it only reshuffles stabilizers).</li>
+        <li>Unsafe choice: treated here as a logical measurement – it collapses the logical state and ends the level.</li>
+        <li>You only have a limited time each round. If the timer hits zero, the hacker wins that round.</li>
+      </ul>
+      <p class="info-note">In the real version, this page will also show the key math rules and diagrams.</p>
+      <div id="info-controls">
+        <button id="info-close-btn" class="primary-btn">Back to game</button>
       </div>
     </div>
   </div>
@@ -39,6 +62,10 @@
         <div id="round-progress"></div>
         <div id="timer-box">
           Time left: <span id="timer-value">--</span>s
+        </div>
+        <div id="header-buttons">
+          <button id="rules-btn" class="secondary-btn header-btn">Rules</button>
+          <button id="restart-game-btn" class="secondary-btn header-btn">Restart game ↻</button>
         </div>
       </div>
     </header>
