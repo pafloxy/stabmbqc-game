@@ -7,8 +7,8 @@
     "assets_base": "assets"
   },
   "config": {
-    "timer": {"enabled": true, "seconds_per_step": 30},
-    "cheat": {"enabled": true, "code": "HAROLD"}
+    "timer": {"enabled": true, "seconds_per_step": 300},
+    "cheat": {"enabled": true, "code": "mygame101"}
   },
   "info": {
     "markdown": "# Rulebook\n\n## Your Mission\nYou are Alice. Protect your logical qubit $|\\psi\\rangle$ inside a stabilizer backbone $\\langle S \\rangle$.\n\n## The Attack\nBob entangles with $\\mathrm{CZ}$ gates and sometimes inserts Pauli-rotations $e^{i\\theta P}$.\n\n## Measurement Rules\nCharlie must measure a Pauli operator $M$. Your job is to choose wisely:\n\n- **SAFE**: $M$ anti-commutes with exactly 1 stabilizer generator\n- **DANGEROUS**: $M$ commutes with all stabilizers (logical measurement!)\n- **DESTRUCTIVE**: $M$ anti-commutes with 2+ generators\n\n## Commutation\nPauli operators $P, Q$ anti-commute if $PQ = -QP$.\nFor example: $XZ = -ZX$ but $XX = XX$.\n\n## Goal\nKeep the logical qubit $|\\psi\\rangle$ protected while Charlie extracts his measurements!",
