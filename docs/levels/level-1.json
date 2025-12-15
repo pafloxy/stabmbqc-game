@@ -7,30 +7,55 @@
     "assets_base": "assets"
   },
   "config": {
-    "timer": {"enabled": true, "seconds_per_step": 300},
+    "timer": {"enabled": false, "seconds_per_step": 300},
     "cheat": {"enabled": true, "code": "mygame101"}
   },
   "info": {
-    "markdown": "# Rulebook\n\n## Your Mission\nYou are Alice. Protect your logical qubit $|\\psi\\rangle$ inside a stabilizer backbone $\\langle S \\rangle$.\n\n## The Attack\nBob entangles with $\\mathrm{CZ}$ gates and sometimes inserts Pauli-rotations $e^{i\\theta P}$.\n\n## Measurement Rules\nCharlie must measure a Pauli operator $M$. Your job is to choose wisely:\n\n- **SAFE**: $M$ anti-commutes with exactly 1 stabilizer generator\n- **DANGEROUS**: $M$ commutes with all stabilizers (logical measurement!)\n- **DESTRUCTIVE**: $M$ anti-commutes with 2+ generators\n\n## Commutation\nPauli operators $P, Q$ anti-commute if $PQ = -QP$.\nFor example: $XZ = -ZX$ but $XX = XX$.\n\n## Goal\nKeep the logical qubit $|\\psi\\rangle$ protected while Charlie extracts his measurements!",
+    "markdown": "STORY\n- Alice encodes her secret in |S, psi>.\n- Bob tries to damage psi using entanglement + forced Pauli measurements.\n- Charlie is a spy: she sends Alice a shortlist of possible measurements she might be forced to perform.\n- Stabilizers are secret: only Alice knows S (and she shows it to you).\n\nMECHANICS\n- Each round: choose an option (measurement, or sometimes an extracted unitary, etc.).\n- If time runs out: you lose the round.\n- If you pick a destructive option: you lose immediately.\n\nWHAT COUNTS AS 'DESTRUCTIVE'\n- A measurement is destructive if it effectively measures logical information (acts like a logical Pauli on psi).\n- A measurement is safe if it only changes the stabilizer record (i.e., it is absorbed by stabilizer update / correction logic).\n\nLEVEL 2 (later)\n- Bob introduces non-Clifford Pauli evolutions U_PES(theta).\n- You must choose measurements that keep the instance extractable AND identify what unitary was induced so Alice can invert it.",
+    "hints_markdown": "QUICK CHECKLIST (Level 1)\n1) Look at the candidate measurement M.\n2) Ask: does M behave like a stabilizer-only disturbance, or does it look logical?\n3) Prefer measurements that 'hit' exactly one stabilizer generator (so one generator is replaced/updated) rather than measurements that commute with everything or look like a logical operator.\n\nRULE OF THUMB\n- \"Commutes with all stabilizers\" is suspicious (often logical).\n- \"Anticommutes with a stabilizer generator\" is usually salvageable (stabilizer update).\n\nIf you're unsure: choose the option that is most obviously tied to the stabilizer subsystem rather than the logical subsystem.",
     "images": []
   },
   "intro_slides": [
     {
       "id": "intro-1",
-      "title": "Your code is under attack",
-      "body_markdown": "Alice rules a tiny quantum kingdom encoded as $|\\mathcal{S}, \\psi\\rangle$. The walls of her castle are the stabilizers $\\langle S_1, S_2, \\ldots \\rangle$; the logical qubit $|\\psi\\rangle$ is the throne she wants to protect.\n\nBob entangles his $|+\\rangle$ ancillas with your system using $\\mathrm{CZ}$ gates, then Charlie measures.",
+      "title": "Stabilizer Survival: The Kingdom State",
+      "textPath": "content/slides/intro-01.md",
       "images": []
     },
     {
       "id": "intro-2",
-      "title": "The Measurement Hacker",
-      "body_markdown": "Bob hires a hacker (Charlie) who can only touch the kingdom via Pauli measurements $M \\in \\{X, Y, Z\\}^{\\otimes n}$.\n\nSome measurements merely swap or flip walls; others smash directly into the throne $|\\psi\\rangle$!",
+      "title": "The Attack",
+      "textPath": "content/slides/intro-02.md",
       "images": []
     },
     {
       "id": "intro-3",
-      "title": "How to win",
-      "body_markdown": "Pick answers that keep the process deterministic:\n\n- Choose measurements that anti-commute with exactly one stabilizer generator (**SAFE**)\n- Avoid logical measurements that would collapse $|\\psi\\rangle$ (**DANGEROUS**)\n- Later rounds: apply the correct byproduct correction $R_m$ when asked",
+      "title": "The Twist",
+      "textPath": "content/slides/intro-03.md",
+      "images": []
+    },
+    {
+      "id": "intro-4",
+      "title": "What You See Each Round",
+      "textPath": "content/slides/intro-04.md",
+      "images": []
+    },
+    {
+      "id": "intro-5",
+      "title": "Level 1 Rule (Non-destructive measurement)",
+      "textPath": "content/slides/intro-05.md",
+      "images": []
+    },
+    {
+      "id": "intro-6",
+      "title": "UI Navigation",
+      "textPath": "content/slides/intro-06.md",
+      "images": []
+    },
+    {
+      "id": "intro-7",
+      "title": "Timer + Win Condition",
+      "textPath": "content/slides/intro-07.md",
       "images": []
     }
   ],
@@ -39,7 +64,7 @@
       "id": "r1",
       "title": "Round 1: Pick a non-destructive measurement",
       "difficulty": 1,
-      "context_markdown": "Alice holds $|\\mathcal{S}, \\psi\\rangle$ with stabilizers $S_1 = ZZI$ and $S_2 = IZZ$ (a 3-qubit repetition code).\n\nBob uses only $\\mathrm{CZ}$ gates to entangle. Charlie offers several Pauli measurements.\n\n**Remember:** SAFE means anti-commutes with exactly one stabilizer.",
+      "context_markdown": "Alice holds $|\\mathcal{S}, \\psi\\rangle$ with stabilizers $S_1 = \\text{Z0 Z1}$ and $S_2 = \\text{Z1 Z2}$ (3-qubit repetition code; sparse Pauli notation).\n\nBob uses only $\\mathrm{CZ}$ gates to entangle. Charlie offers several Pauli measurements.\n\n**Remember:** SAFE means anti-commutes with exactly one stabilizer.",
       "assets": {
         "circuit_image": "rounds/r1-circuit.png",
         "graph_image": "rounds/r1-graph.png"
@@ -50,7 +75,7 @@
         "bob_qubits": [],
         "cz_edges": [],
         "rotations": [],
-        "stabilizers": ["ZZI", "IZZ"]
+        "stabilizers": ["Z0 Z1", "Z1 Z2"]
       },
       "steps": [
         {
@@ -58,16 +83,16 @@
           "kind": "select_measurement",
           "prompt_markdown": "Charlie offers these Pauli measurements. Pick the one that is **non-destructive** (SAFE).",
           "options": [
-            {"id": "A", "label": "$X \\otimes I \\otimes I$", "detail_markdown": "Pauli $X$ on qubit 0 only"},
-            {"id": "B", "label": "$Z \\otimes Z \\otimes Z$", "detail_markdown": "Pauli $Z$ on all qubits"},
-            {"id": "C", "label": "$X \\otimes X \\otimes X$", "detail_markdown": "Pauli $X$ on all qubits"}
+            {"id": "A", "label": "$X0$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
+            {"id": "B", "label": "$Z0\\,Z1\\,Z2$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},
+            {"id": "C", "label": "$X0\\,X1\\,X2$", "detail_markdown": "Pauli $X$ on all qubits (sparse: X0 X1 X2)"}
           ],
           "answer": {"correct_option_id": "A"},
           "feedback": {
-            "on_correct_markdown": "Correct! $X \\otimes I \\otimes I$ anti-commutes with $S_1 = ZZI$ only, so it merely updates the stabilizer structure without destroying the logical info.",
+            "on_correct_markdown": "Correct! $X0$ anti-commutes with $S_1 = \\text{Z0 Z1}$ only, so it merely updates the stabilizer structure without destroying the logical info.",
             "on_wrong_markdown": "Oops! That measurement either commutes with all stabilizers (logical) or anti-commutes with more than one. Game over."
           },
-          "timer": {"enabled": true, "seconds": 25}
+          "timer": {"enabled": false, "seconds": 25}
         }
       ]
     },
@@ -75,7 +100,7 @@
       "id": "r2",
       "title": "Round 2: Another measurement choice",
       "difficulty": 1,
-      "context_markdown": "Same 3-qubit code with stabilizers $S_1 = ZZI$ and $S_2 = IZZ$.\n\nDifferent measurement options this time. Think about which Pauli operators anti-commute with which stabilizers!",
+      "context_markdown": "Same 3-qubit code with stabilizers $S_1 = \\text{Z0 Z1}$ and $S_2 = \\text{Z1 Z2}$ (sparse Pauli notation).\n\nDifferent measurement options this time. Think about which Pauli operators anti-commute with which stabilizers!",
       "assets": {
         "circuit_image": "rounds/r2-circuit.png",
         "graph_image": "rounds/r2-graph.png"
@@ -86,7 +111,7 @@
         "bob_qubits": [],
         "cz_edges": [],
         "rotations": [],
-        "stabilizers": ["ZZI", "IZZ"]
+        "stabilizers": ["Z0 Z1", "Z1 Z2"]
       },
       "steps": [
         {
@@ -94,16 +119,16 @@
           "kind": "select_measurement",
           "prompt_markdown": "Charlie offers these measurements. Which one is **SAFE**?",
           "options": [
-            {"id": "A", "label": "$I \\otimes I \\otimes X$", "detail_markdown": "Pauli $X$ on qubit 2 only"},
-            {"id": "B", "label": "$I \\otimes X \\otimes I$", "detail_markdown": "Pauli $X$ on qubit 1 only"},
-            {"id": "C", "label": "$Z \\otimes Z \\otimes Z$", "detail_markdown": "Pauli $Z$ on all qubits"}
+            {"id": "A", "label": "$X2$", "detail_markdown": "Pauli $X$ on qubit 2 only (sparse: X2)"},
+            {"id": "B", "label": "$X1$", "detail_markdown": "Pauli $X$ on qubit 1 only (sparse: X1)"},
+            {"id": "C", "label": "$Z0\\,Z1\\,Z2$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"}
           ],
           "answer": {"correct_option_id": "A"},
           "feedback": {
-            "on_correct_markdown": "Nice! $I \\otimes I \\otimes X$ anti-commutes with only $S_2 = IZZ$ (position 2: $X$ vs $Z$), making it safe!",
+            "on_correct_markdown": "Nice! $X2$ anti-commutes with only $S_2 = \\text{Z1 Z2}$ (position 2: $X$ vs $Z$), making it safe!",
             "on_wrong_markdown": "That measurement was either logical or anti-commutes with multiple stabilizers. Game over!"
           },
-          "timer": {"enabled": true, "seconds": 25}
+          "timer": {"enabled": false, "seconds": 25}
         }
       ]
     },
@@ -111,7 +136,7 @@
       "id": "r3",
       "title": "Round 3: Multi-step challenge",
       "difficulty": 2,
-      "context_markdown": "Now with 5 qubits: Alice has qubits $\\{0, 1, 2\\}$ and Bob has qubits $\\{3, 4\\}$.\n\nBob applied $\\mathrm{CZ}_{1,3}$ and $\\mathrm{CZ}_{2,4}$.\n\n**Evolved stabilizers:** Under $\\mathrm{CZ}$ conjugation, $X_3 \\to Z_1 X_3$ and $X_4 \\to Z_2 X_4$.",
+      "context_markdown": "Now with 5 qubits: Alice has qubits $\\{0, 1, 2\\}$ and Bob has qubits $\\{3, 4\\}$.\n\nBob applied $\\mathrm{CZ}_{1,3}$ and $\\mathrm{CZ}_{2,4}$.\n\n**Evolved stabilizers (sparse):** under $\\mathrm{CZ}$, $X3 \\to Z1 X3$ and $X4 \\to Z2 X4$.",
       "assets": {
         "circuit_image": "rounds/r3-circuit.png",
         "graph_image": "rounds/r3-graph.png"
@@ -122,7 +147,7 @@
         "bob_qubits": [3, 4],
         "cz_edges": [[1, 3], [2, 4]],
         "rotations": [],
-        "stabilizers": ["ZZIII", "IZZII", "IZIXZ", "IIZIX"]
+        "stabilizers": ["Z0 Z1", "Z1 Z2", "Z1 X3 Z4", "Z2 X4"]
       },
       "steps": [
         {
@@ -130,16 +155,16 @@
           "kind": "select_measurement",
           "prompt_markdown": "After Bob's $\\mathrm{CZ}$ attack, the stabilizers evolved. Which measurement is **SAFE**?",
           "options": [
-            {"id": "A", "label": "$X \\otimes I \\otimes I \\otimes I \\otimes I$", "detail_markdown": "$X$ on Alice qubit 0"},
-            {"id": "B", "label": "$I \\otimes I \\otimes I \\otimes X \\otimes I$", "detail_markdown": "$X$ on Bob qubit 3 only"},
-            {"id": "C", "label": "$Z \\otimes Z \\otimes Z \\otimes I \\otimes I$", "detail_markdown": "$ZZZ$ on Alice qubits"}
+            {"id": "A", "label": "$X0$", "detail_markdown": "$X$ on Alice qubit 0 (sparse: X0)"},
+            {"id": "B", "label": "$X3$", "detail_markdown": "$X$ on Bob qubit 3 only (sparse: X3)"},
+            {"id": "C", "label": "$Z0\\,Z1\\,Z2$", "detail_markdown": "$ZZZ$ on Alice qubits (sparse: Z0 Z1 Z2)"}
           ],
           "answer": {"correct_option_id": "A"},
           "feedback": {
-            "on_correct_markdown": "Correct! $X_0$ anti-commutes with exactly one stabilizer ($S_1 = ZZIII$).",
+            "on_correct_markdown": "Correct! $X0$ anti-commutes with exactly one stabilizer ($S_1 = \\text{Z0 Z1}$).",
             "on_wrong_markdown": "That wasn't the safest choice. Game over!"
           },
-          "timer": {"enabled": true, "seconds": 30}
+          "timer": {"enabled": false, "seconds": 30}
         },
         {
           "id": "r3-s2",
@@ -155,7 +180,7 @@
             "on_correct_markdown": "Well done! The $m=-1$ outcome requires a $Z$ correction on the connected qubit to restore determinism.",
             "on_wrong_markdown": "Wrong correction! The logical state $|\\psi\\rangle$ is now corrupted. Game over!"
           },
-          "timer": {"enabled": true, "seconds": 30}
+          "timer": {"enabled": false, "seconds": 30}
         }
       ]
     }

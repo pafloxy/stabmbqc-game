@@ -70,4 +70,199 @@ def _parse_tokens(pauli_spec: str) -> Dict[int, str]:
     return tokens
 
 
-__all__ = ["canonicalize_sparse_pauli", "parse_sparse_pauli"]
+__all__ = [
+    "canonicalize_sparse_pauli",
+    "parse_sparse_pauli",
+    "paulistring_to_sparse",
+    "stim_to_symplectic",
+    "gf2_rowspan_decompose",
+    "is_logical_pauli_sparse",
+]
+
+# Stim opcodes for readability
+_OPCODE_TO_CHAR = {0: "I", 1: "X", 2: "Y", 3: "Z"}
+_CHAR_TO_OPCODE = {"I": 0, "X": 1, "Y": 2, "Z": 3}
+
+
+def paulistring_to_sparse(p: stim.PauliString) -> str:
+    """Convert a Stim PauliString to sparse \"X0 Z3\" notation."""
+    tokens: List[str] = []
+    for q in range(len(p)):
+        op = _OPCODE_TO_CHAR.get(p[q], "I")
+        if op in ("X", "Y", "Z"):
+            tokens.append(f"{op}{q}")
+    return " ".join(tokens)
+
+
+def stim_to_symplectic(p: stim.PauliString, n: int):
+    """Return (x, z) bit-vectors (np.uint8) of length n for a Stim PauliString."""
+    import numpy as np
+
+    x = np.zeros(n, dtype=np.uint8)
+    z = np.zeros(n, dtype=np.uint8)
+    for i in range(n):
+        op = p[i]
+        if op == _CHAR_TO_OPCODE["X"]:
+            x[i] = 1
+        elif op == _CHAR_TO_OPCODE["Z"]:
+            z[i] = 1
+        elif op == _CHAR_TO_OPCODE["Y"]:
+            x[i] = 1
+            z[i] = 1
+    return x, z
+
+
+def gf2_rowspan_decompose(S, p):
+    """
+    Decide whether p is in rowspan(S) over GF(2), returning (in_span, coeffs).
+
+    Args:
+        S: (m, d) uint8 matrix over GF(2)
+        p: (d,) uint8 vector over GF(2)
+
+    Returns:
+        (in_span, coeffs)
+        - in_span: True iff p ∈ rowspan(S)
+        - coeffs: length-m uint8 vector; when in_span=True, coeffs^T S = p (mod 2)
+    """
+    import numpy as np
+
+    S = S.copy().astype(np.uint8)
+    p = p.copy().astype(np.uint8)
+    m, d = S.shape
+    comb = np.eye(m, dtype=np.uint8)
+
+    pivot_row = 0
+    pivots: List[Tuple[int, int]] = []
+    for col in range(d):
+        if pivot_row >= m:
+            break
+        pr = None
+        for r in range(pivot_row, m):
+            if S[r, col]:
+                pr = r
+                break
+        if pr is None:
+            continue
+        if pr != pivot_row:
+            S[[pivot_row, pr]] = S[[pr, pivot_row]]
+            comb[[pivot_row, pr]] = comb[[pr, pivot_row]]
+        for r in range(pivot_row + 1, m):
+            if S[r, col]:
+                S[r] ^= S[pivot_row]
+                comb[r] ^= comb[pivot_row]
+        pivots.append((pivot_row, col))
+        pivot_row += 1
+
+    coeffs = np.zeros(m, dtype=np.uint8)
+    for r, col in pivots:
+        if p[col]:
+            p ^= S[r]
+            coeffs ^= comb[r]
+
+    in_span = bool((p == 0).all())
+    return in_span, coeffs
+
+
+def is_logical_pauli_sparse(
+    candidate: str,
+    stabilizers: List[str],
+    num_qubits: int | None = None,
+) -> Tuple[str, Dict[str, object] | None]:
+    """
+    Determine if a sparse Pauli string is a logical operator with respect to a
+    given commuting stabilizer generator set. Provides three types of information:
+    1. If logical: returns "logical"
+    2. If anticommuting: returns "anticommuting" with which generators
+    3. If in stabilizer span: returns "stabilizer" with decomposition
+
+    Args:
+        candidate: sparse Pauli string, e.g. "X1 Z3" (indices are zero-based).
+        stabilizers: list of sparse Pauli strings for an independent commuting
+            stabilizer generator set.
+        num_qubits: optional total qubits; inferred if omitted from the max index
+            present across the candidate and stabilizers.
+
+    Returns:
+        (status, details)
+        - If status is "logical": details is None.
+        - If status is "anticommuting": details contains:
+            - "anticommuting_with": List[int] indices of generators that anticommute.
+        - If status is "stabilizer": details contains:
+            - "generator_indices": List[int] indices of generators in decomposition.
+            - "product_sparse": str sparse notation of the resulting product.
+            - "note": str note on phase handling (overall phase ignored).
+
+    Notes:
+        - Overall phases (±1, ±i) are ignored; matching is on the operator
+          pattern only.
+        - Stabilizers are assumed mutually commuting and independent.
+    """
+
+    import numpy as np
+
+    def _infer_num_qubits() -> int:
+        if num_qubits is not None:
+            return num_qubits
+        max_idx = -1
+        for spec in [candidate] + list(stabilizers):
+            for idx in _parse_tokens(spec).keys():
+                max_idx = max(max_idx, idx)
+        return max_idx + 1 if max_idx >= 0 else 0
+
+    n = _infer_num_qubits()
+
+    # Parse with consistent length.
+    p_cand = parse_sparse_pauli(candidate, num_qubits=n)
+    gens = [parse_sparse_pauli(s, num_qubits=n) for s in stabilizers]
+    m = len(gens)
+
+    # Early exit when no stabilizers are provided.
+    if m == 0:
+        is_identity = all(p_cand[q] == _CHAR_TO_OPCODE["I"] for q in range(len(p_cand)))
+        if is_identity:
+            return "stabilizer", {
+                "generator_indices": [],
+                "product_sparse": "",
+                "note": "No stabilizers; identity is trivial; phases ignored.",
+            }
+        return "logical", None
+
+    # Build symplectic vectors
+    x_c, z_c = stim_to_symplectic(p_cand, n)
+    x_g, z_g = [], []
+    for g in gens:
+        x, z = stim_to_symplectic(g, n)
+        x_g.append(x)
+        z_g.append(z)
+
+    # Commutation check via symplectic form
+    anticommuting_indices = []
+    for i, (x, z) in enumerate(zip(x_g, z_g)):
+        comm = (np.dot(x_c, z) + np.dot(z_c, x)) % 2
+        if comm == 1:
+            anticommuting_indices.append(i)
+    if anticommuting_indices:
+        return "anticommuting", {
+            "anticommuting_with": anticommuting_indices,
+            "note": f"Anticommutes with generators {anticommuting_indices}; not logical and not in stabilizer group.",
+        }
+
+    S = np.vstack([np.concatenate([x, z]) for x, z in zip(x_g, z_g)]).astype(np.uint8)
+    p_vec = np.concatenate([x_c, z_c]).astype(np.uint8)
+
+    in_span, coeffs = gf2_rowspan_decompose(S, p_vec)
+    if in_span:
+        selected_indices = [int(i) for i, v in enumerate(coeffs.tolist()) if v == 1]
+        prod = stim.PauliString(n)
+        for i in selected_indices:
+            prod *= gens[i]
+        product_sparse = paulistring_to_sparse(prod)
+        return "stabilizer", {
+            "generator_indices": selected_indices,
+            "product_sparse": product_sparse,
+            "note": "Overall phase ignored in decomposition.",
+        }
+
+    # Commutes with all stabilizers and not in their span -> logical.
+    return "logical", None

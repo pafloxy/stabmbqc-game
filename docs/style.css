@@ -51,6 +51,10 @@ html, body {
   line-height: 1.6;
 }
 
+.hidden {
+  display: none !important;
+}
+
 /* CRT Scanline Effect */
 body::before {
   content: "";
@@ -231,6 +235,65 @@ body::after {
   text-align: center;
   padding-top: 20px;
   border-top: 1px solid var(--border-dim);
+}
+
+/* Info Overlay */
+.info-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1200;
+}
+
+.info-panel {
+  background: var(--bg-panel);
+  border: 2px solid var(--border-color);
+  box-shadow: 0 0 20px var(--accent-glow);
+  width: min(800px, 90vw);
+  max-height: 80vh;
+  overflow: auto;
+  padding: 20px;
+}
+
+.info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.info-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.tab-btn {
+  background: var(--bg-dark);
+  color: var(--fg-primary);
+  border: 2px solid var(--border-dim);
+  padding: 8px 12px;
+  font-family: var(--font-main);
+  font-size: 9px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tab-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.info-body {
+  font-size: 10px;
+  color: var(--fg-secondary);
+  line-height: 1.8;
+  white-space: pre-line;
 }
 
 /* ==========================

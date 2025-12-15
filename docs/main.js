@@ -20,6 +20,8 @@ const appState = {
 };
 
 let campaignData = null;
+const slideTextCache = new Map();
+const infoOverlayState = { mode: "rules" };
 
 // ==========================
 // DOM helpers
@@ -33,6 +35,10 @@ function $$(selector) {
   return document.querySelectorAll(selector);
 }
 
+function markdownToHtml(text) {
+  return (text || "").replace(/\n/g, "<br>");
+}
+
 // ==========================
 // LaTeX rendering with MathJax
 // ==========================
@@ -44,6 +50,49 @@ function renderLatex(element = document.body) {
       console.warn("MathJax rendering error:", err.message);
     });
   }
+}
+
+// ==========================
+// Intro slide text loader (supports textPath)
+// ==========================
+
+async function getSlideText(slide) {
+  if (!slide) return "";
+  if (slide.body_markdown) return slide.body_markdown;
+  if (slide.text) return slide.text;
+  if (!slide.textPath) return "";
+
+  if (slideTextCache.has(slide.textPath)) {
+    return slideTextCache.get(slide.textPath);
+  }
+
+  try {
+    const resp = await fetch(slide.textPath);
+    if (!resp.ok) {
+      throw new Error(`Failed to load slide text from ${slide.textPath}`);
+    }
+    const txt = await resp.text();
+    slideTextCache.set(slide.textPath, txt);
+    return txt;
+  } catch (err) {
+    console.warn(err.message);
+    return "";
+  }
+}
+
+function setSlideBodyText(slide, el) {
+  if (!el || !slide) return;
+  const cacheKey = slide.id || `slide-${Date.now()}`;
+  el.dataset.slideId = cacheKey;
+  el.textContent = "Loading...";
+
+  getSlideText(slide).then((text) => {
+    // Avoid race: only update if still same slide element
+    if (el.dataset.slideId === cacheKey) {
+      el.textContent = text;
+      renderLatex(el);
+    }
+  });
 }
 
 // ==========================
@@ -176,6 +225,64 @@ function goToHome() {
 }
 
 // ==========================
+// Info / Hints overlay
+// ==========================
+
+function hydrateInfoOverlay() {
+  const infoData = campaignData?.info || {};
+  const rulesBody = $("#info-body-rules");
+  const hintsBody = $("#info-body-hints");
+
+  if (rulesBody) {
+    rulesBody.innerHTML = markdownToHtml(infoData.markdown || "No rules available yet.");
+  }
+  if (hintsBody) {
+    hintsBody.innerHTML = markdownToHtml(infoData.hints_markdown || "No hints available yet.");
+  }
+}
+
+function setInfoOverlayMode(mode = "rules") {
+  infoOverlayState.mode = mode;
+  const rulesSection = $("#info-body-rules");
+  const hintsSection = $("#info-body-hints");
+  const rulesTab = $("#info-tab-rules");
+  const hintsTab = $("#info-tab-hints");
+
+  rulesSection?.classList.toggle("hidden", mode !== "rules");
+  hintsSection?.classList.toggle("hidden", mode !== "hints");
+  rulesTab?.classList.toggle("active", mode === "rules");
+  hintsTab?.classList.toggle("active", mode === "hints");
+}
+
+function showInfoOverlay(mode = "rules") {
+  hydrateInfoOverlay();
+  setInfoOverlayMode(mode);
+  const overlay = $("#info-overlay");
+  if (overlay) {
+    overlay.classList.remove("hidden");
+    renderLatex(overlay);
+  }
+}
+
+function hideInfoOverlay() {
+  const overlay = $("#info-overlay");
+  if (overlay) {
+    overlay.classList.add("hidden");
+  }
+}
+
+function initInfoOverlayEvents() {
+  $("#info-close-btn")?.addEventListener("click", hideInfoOverlay);
+  $("#info-tab-rules")?.addEventListener("click", () => showInfoOverlay("rules"));
+  $("#info-tab-hints")?.addEventListener("click", () => showInfoOverlay("hints"));
+  $("#info-overlay")?.addEventListener("click", (evt) => {
+    if (evt.target.id === "info-overlay") {
+      hideInfoOverlay();
+    }
+  });
+}
+
+// ==========================
 // Main render dispatcher
 // ==========================
 
@@ -191,7 +298,8 @@ function render() {
       renderIntro(app);
       break;
     case "info":
-      renderInfo(app);
+      showInfoOverlay(infoOverlayState.mode || "rules");
+      renderHome(app);
       break;
     case "round":
       renderRound(app);
@@ -245,9 +353,7 @@ function renderHome(container) {
   });
 
   $("#info-btn")?.addEventListener("click", () => {
-    appState.previousPhase = "home";
-    appState.phase = "info";
-    render();
+    showInfoOverlay("rules");
   });
 }
 
@@ -281,7 +387,7 @@ function renderIntro(container) {
     <div class="screen intro-screen">
       <div class="intro-content">
         <h1 class="slide-title">${slide.title || ""}</h1>
-        <div class="slide-body">${slide.body_markdown || slide.text || ""}</div>
+        <div class="slide-body"></div>
         ${imagesHtml}
         <div class="intro-controls">
           <div class="intro-left">
@@ -324,6 +430,9 @@ function renderIntro(container) {
     appState.stepIndex = 0;
     render();
   });
+
+  const slideBody = container.querySelector(".slide-body");
+  setSlideBodyText(slide, slideBody);
 }
 
 // ==========================
@@ -427,6 +536,7 @@ function renderRound(container) {
           <div class="timer-box">TIME: <span id="timer-value">--</span>s</div>
           <div class="header-buttons">
             <button id="rules-btn" class="secondary-btn small">RULES</button>
+            <button id="hints-btn" class="secondary-btn small">HINTS</button>
             <button id="skip-round-btn" class="secondary-btn small">SKIP</button>
             <button id="restart-game-btn" class="secondary-btn small">RESTART</button>
           </div>
@@ -471,10 +581,11 @@ function renderRound(container) {
   });
 
   $("#rules-btn")?.addEventListener("click", () => {
-    stopTimer();
-    appState.previousPhase = "round";
-    appState.phase = "info";
-    render();
+    showInfoOverlay("rules");
+  });
+
+  $("#hints-btn")?.addEventListener("click", () => {
+    showInfoOverlay("hints");
   });
 
   $("#skip-round-btn")?.addEventListener("click", () => {
@@ -502,7 +613,7 @@ function renderRound(container) {
   if (!appState.hasAnsweredThisStep) {
     const timerConfig = step.timer || campaignData.config?.timer;
     if (timerConfig?.enabled) {
-      const seconds = step.timer?.seconds || campaignData.config?.timer?.seconds_per_step || 30;
+      const seconds = step.timer?.seconds || campaignData.config?.timer?.seconds_per_step || 300;
       startTimer(seconds, () => {
         appState.phase = "gameover";
         render();
@@ -610,10 +721,12 @@ async function loadLevel(levelId) {
 
 window.addEventListener("DOMContentLoaded", async () => {
   console.log("StabMBQC Game initializing...");
+  initInfoOverlayEvents();
 
   try {
     campaignData = await loadLevel("level-1");
     console.log("Campaign data loaded:", campaignData);
+    hydrateInfoOverlay();
     
     appState.phase = "home";
     render();
