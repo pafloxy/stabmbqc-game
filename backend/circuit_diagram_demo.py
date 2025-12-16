@@ -7,7 +7,7 @@ Shows both text-mode and SVG-mode circuit diagrams for StabMBQC systems
 import sys
 import os
 import random
-import stim
+from backend.stim_import import stim
 
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))

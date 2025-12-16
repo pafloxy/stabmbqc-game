@@ -194,7 +194,7 @@ def verify_step_qc(step: Step, qc_spec: Optional[dict]) -> List[str]:
         n_qubits = qc_spec.get("n_qubits", len(label))
         
         # Create Stim PauliString from the label
-        import stim
+        from backend.stim_import import stim
         measurement = stim.PauliString(n_qubits)
         for i, ch in enumerate(label):
             if ch in ['X', 'Y', 'Z']:

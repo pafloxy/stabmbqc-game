@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import random
 from typing import List, Tuple, Set
-import stim
+from backend.stim_import import stim
 from dataclasses import dataclass
 
 # Optional imports for visualization

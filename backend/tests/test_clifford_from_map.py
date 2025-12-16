@@ -1,5 +1,5 @@
 import pytest
-import stim
+from backend.stim_import import stim
 import sys
 from pathlib import Path
 

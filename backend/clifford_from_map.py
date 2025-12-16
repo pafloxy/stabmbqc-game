@@ -274,11 +274,49 @@ def synthesize_clifford_from_sd_pairs(
     max_weight_search: int = 3,
     completion: str = "search",
 ) -> Dict[str, object]:
-    """Return a Clifford tableau/circuit consistent with stabilizer-destabilizer pairs.
+    """Return a Clifford tableau/circuit consistent with stabilizer–destabilizer pairs.
 
-    direction:
-        - "pairs_to_standard": return C s.t. C S_i C† = Z_q, C D_i C† = X_q
-        - "standard_to_pairs": return T that sends Z_q->S_i, X_q->D_i
+    This is the high-level entry point described in ``backend/clifford-from-map.md``. The
+    inputs ``pairs`` are strings that describe stabilizer/destabilizer partners following
+    the sparse format accepted by :func:`pauli_handling.parse_sparse_pauli` (e.g. ``"Z1 X3"``).
+    Each tuple must anticommute within the pair and commute with all other tuples. The
+    routine completes the partial symplectic frame, synthesizes a Stim tableau, and returns
+    both the tableau and the corresponding Clifford circuit.
+
+    Args:
+        pairs: ``[(S_0, D_0), (S_1, D_1), ...]`` where each entry is a sparse Pauli string
+            describing the stabilizer ``S_i`` and its destabilizer partner ``D_i``.
+        num_qubits: Total number of qubits for the Clifford/tableau.
+        target_qubits: Optional explicit mapping ``q_i`` where each pair should land in the
+            canonical frame (default ``q_i=i``). Length must match ``pairs`` and qubits must
+            be distinct.
+        direction: If ``"pairs_to_standard"`` (default) the returned Clifford ``C`` maps the
+            provided frame to canonical single-qubit Paulis: ``C S_i C† = Z_{q_i}``,
+            ``C D_i C† = X_{q_i}``. If ``"standard_to_pairs"``, returns a tableau ``T`` that
+            performs the inverse mapping ``Z_{q_i} -> S_i``, ``X_{q_i} -> D_i``.
+        max_weight_search: Maximum Pauli weight when enumerating candidates to complete the
+            symplectic basis.
+        completion: Strategy for filling missing generators (currently only ``"search"``).
+
+    Returns:
+        dict with keys:
+            "tableau": Stim tableau implementing the requested mapping.
+            "circuit": Clifford circuit derived from the tableau.
+            "target_qubits": The resolved target qubits used for the mapping.
+            "diagnostics": Sparse representations of the completed symplectic frame.
+
+    Example:
+        >>> pairs = [
+        ...     ("Z1 X3", "Z3"),
+        ...     ("Z0 Z2 X4", "X2"),
+        ...     ("Y0 Y1 Z3 Z4", "Z0"),
+        ...     ("Z0 X1 X2 Z3 Z4", "Z0 Z1"),
+        ... ]
+        >>> result = synthesize_clifford_from_sd_pairs(pairs, num_qubits=5)
+        >>> result["tableau"].verify()  # doctest: +ELLIPSIS
+        ...
+        >>> result["circuit"]  # doctest: +ELLIPSIS
+        stim.Circuit(...)
     """
     if num_qubits <= 0:
         raise ValueError("num_qubits must be positive")
