@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Dict, List, Tuple, Optional
 
-from backend.stim_import import stim
+import stim
 
 from pauli_handling import (
     parse_sparse_pauli,
@@ -363,3 +363,14 @@ def synthesize_clifford_from_sd_pairs(
             "zs_sparse": [paulistring_to_sparse(p) for p in Z_img],
         },
     }
+
+def conjugate(tableau, p):
+    # Real Stim
+    try:
+        return tableau(p)
+    except TypeError:
+        pass
+    # Stub / fallback
+    if hasattr(tableau, "conjugate_pauli_string"):
+        return tableau.conjugate_pauli_string(p)
+    raise AttributeError("Tableau conjugation method not found.")
