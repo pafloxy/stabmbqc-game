@@ -50,3 +50,11 @@ def test_circuit_generation():
     circ = res["circuit"]
     assert isinstance(circ, stim.Circuit)
     assert len(list(circ)) > 0  # has some operations
+
+
+def test_invalid_direction_and_completion():
+    pairs = [("Z0", "X0")]
+    with pytest.raises(ValueError):
+        synthesize_clifford_from_sd_pairs(pairs, num_qubits=1, direction="bad")
+    with pytest.raises(ValueError):
+        synthesize_clifford_from_sd_pairs(pairs, num_qubits=1, completion="algebra")
