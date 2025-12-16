@@ -243,6 +243,14 @@ def _find_destabilizers_and_logicals(
         S_matrix = np.column_stack([
             np.concatenate([stab_x[i], stab_z[i]]) for i in range(k)
         ]).T
+        if destab_x:
+            D_matrix = np.column_stack([
+                np.concatenate([destab_x[i], destab_z[i]]) for i in range(len(destab_x))
+            ]).T
+            SD_matrix = np.concatenate([S_matrix, D_matrix], axis=0)
+        else:
+            D_matrix = None
+            SD_matrix = S_matrix
         
         # Enumerate Pauli operators by binary representation
         for weight in range(1, n + 1):  # Weight 1 to n
@@ -281,14 +289,28 @@ def _find_destabilizers_and_logicals(
                     )
                     if not commutes_with_prev_lz:
                         continue
+
+                    # Must commute with all destabilizers (canonical form: only S_i vs D_i anticommute)
+                    commutes_with_destabs = all(
+                        (np.dot(lx, destab_z[j]) + np.dot(lz_x, destab_x[j])) % 2 == 0
+                        for j in range(len(destab_x))
+                    )
+                    if not commutes_with_destabs:
+                        continue
                     
                     # Must not be in stabilizer span
                     p_vec = np.concatenate([lx, lz_x])
-                    in_span, _ = gf2_rowspan_decompose(S_matrix, p_vec)
-                    if not in_span:
-                        logical_x_vecs.append((lx, lz_x))
-                        found_lx = True
-                        break
+                    in_stab_span, _ = gf2_rowspan_decompose(S_matrix, p_vec)
+                    in_destab_span = False
+                    if D_matrix is not None:
+                        in_destab_span, _ = gf2_rowspan_decompose(D_matrix, p_vec)
+                    in_combined_span, _ = gf2_rowspan_decompose(SD_matrix, p_vec)
+                    if in_stab_span or in_destab_span or in_combined_span:
+                        continue
+
+                    logical_x_vecs.append((lx, lz_x))
+                    found_lx = True
+                    break
         
         if not found_lx:
             # No more independent logical operators
@@ -338,14 +360,28 @@ def _find_destabilizers_and_logicals(
                     )
                     if not commutes_with_prev:
                         continue
+
+                    # Must commute with all destabilizers
+                    commutes_with_destabs = all(
+                        (np.dot(lz, destab_z[j]) + np.dot(lz_z, destab_x[j])) % 2 == 0
+                        for j in range(len(destab_x))
+                    )
+                    if not commutes_with_destabs:
+                        continue
                     
                     # Must not be in stabilizer span
                     p_vec = np.concatenate([lz, lz_z])
-                    in_span, _ = gf2_rowspan_decompose(S_matrix, p_vec)
-                    if not in_span:
-                        logical_z_vecs.append((lz, lz_z))
-                        found_lz = True
-                        break
+                    in_stab_span, _ = gf2_rowspan_decompose(S_matrix, p_vec)
+                    in_destab_span = False
+                    if D_matrix is not None:
+                        in_destab_span, _ = gf2_rowspan_decompose(D_matrix, p_vec)
+                    in_combined_span, _ = gf2_rowspan_decompose(SD_matrix, p_vec)
+                    if in_stab_span or in_destab_span or in_combined_span:
+                        continue
+
+                    logical_z_vecs.append((lz, lz_z))
+                    found_lz = True
+                    break
         
         if not found_lz:
             # Could not complete this logical pair, remove the X
@@ -400,15 +436,29 @@ def _find_destabilizers_and_logicals(
                 )
                 if not commutes_with_stabs:
                     continue
+
+                # Check commutation with destabilizers
+                commutes_with_destabs = all(
+                    (np.dot(lx, destab_z[j]) + np.dot(lz_x, destab_x[j])) % 2 == 0
+                    for j in range(len(destab_x))
+                )
+                if not commutes_with_destabs:
+                    continue
                 
                 # Check not in stabilizer span
                 from pauli_handling import gf2_rowspan_decompose
                 S_matrix = np.column_stack([
                     np.concatenate([stab_x[i], stab_z[i]]) for i in range(k)
                 ]).T
+                D_matrix = np.column_stack([
+                    np.concatenate([destab_x[i], destab_z[i]]) for i in range(len(destab_x))
+                ]).T
+                SD_matrix = np.concatenate([S_matrix, D_matrix], axis=0)
                 p_vec = np.concatenate([lx, lz_x])
-                in_span, _ = gf2_rowspan_decompose(S_matrix, p_vec)
-                if in_span:
+                in_stab_span, _ = gf2_rowspan_decompose(S_matrix, p_vec)
+                in_destab_span, _ = gf2_rowspan_decompose(D_matrix, p_vec)
+                in_combined_span, _ = gf2_rowspan_decompose(SD_matrix, p_vec)
+                if in_stab_span or in_destab_span or in_combined_span:
                     continue
                 
                 # Check commutation with existing logical operators
@@ -441,6 +491,13 @@ def _find_destabilizers_and_logicals(
                         )
                         if not commutes_with_stabs_z:
                             continue
+
+                        commutes_with_destabs_z = all(
+                            (np.dot(lz, destab_z[j]) + np.dot(lz_z, destab_x[j])) % 2 == 0
+                            for j in range(len(destab_x))
+                        )
+                        if not commutes_with_destabs_z:
+                            continue
                         
                         # Check anticommutes with the X we found
                         anticomm = (np.dot(lz, lz_x) + np.dot(lz_z, lx)) % 2 == 1
@@ -458,8 +515,10 @@ def _find_destabilizers_and_logicals(
                         
                         # Check not in span
                         p_vec_z = np.concatenate([lz, lz_z])
-                        in_span_z, _ = gf2_rowspan_decompose(S_matrix, p_vec_z)
-                        if in_span_z:
+                        in_stab_span_z, _ = gf2_rowspan_decompose(S_matrix, p_vec_z)
+                        in_destab_span_z, _ = gf2_rowspan_decompose(D_matrix, p_vec_z)
+                        in_combined_span_z, _ = gf2_rowspan_decompose(SD_matrix, p_vec_z)
+                        if in_stab_span_z or in_destab_span_z or in_combined_span_z:
                             continue
                         
                         # Found a valid pair
