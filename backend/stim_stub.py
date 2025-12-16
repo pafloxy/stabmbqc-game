@@ -194,7 +194,8 @@ class Tableau:
     def z_output(self, q: int) -> PauliString:
         return self.zs[q]
 
-    def conjugate_pauli_string(self, p: PauliString) -> PauliString:
+    def __call__(self, p: PauliString) -> PauliString:
+        """Conjugate a PauliString by this Clifford (real stim API)."""
         v = p._to_symp(self.n)
         M = self._matrix()
         out = [0] * (2 * self.n)
@@ -202,6 +203,10 @@ class Tableau:
             if val:
                 out = [(a ^ b) for a, b in zip(out, M[j])]
         return _vec_to_pauli(out)
+
+    # Alias for backward compatibility
+    def conjugate_pauli_string(self, p: PauliString) -> PauliString:
+        return self(p)
 
     def inverse(self) -> "Tableau":
         M = self._matrix()

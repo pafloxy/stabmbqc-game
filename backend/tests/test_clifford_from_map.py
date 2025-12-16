@@ -26,8 +26,8 @@ def test_pairs_to_standard_conjugation():
     for i, q in enumerate(target_qubits):
         S = parse_sparse_pauli(pairs[i][0], num_qubits=num_qubits)
         D = parse_sparse_pauli(pairs[i][1], num_qubits=num_qubits)
-        out_S = C.conjugate_pauli_string(S)
-        out_D = C.conjugate_pauli_string(D)
+        out_S = C(S)  # Tableau conjugation via __call__
+        out_D = C(D)
 
         want_S = stim.PauliString(num_qubits)
         want_S[q] = "Z"

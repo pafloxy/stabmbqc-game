@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Dict, List, Tuple, Optional
 
-import stim
+from stim_import import stim
 
 from pauli_handling import (
     parse_sparse_pauli,

@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import Dict, List, Tuple
 
-from backend.stim_import import stim
+from stim_import import stim
 import numpy as np
 
 from pauli_handling import (
