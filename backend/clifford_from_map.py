@@ -9,8 +9,7 @@ from __future__ import annotations
 
 from typing import Dict, List, Tuple, Optional
 
-import stim
-import numpy as np
+from backend.stim_import import stim
 
 from pauli_handling import (
     parse_sparse_pauli,
@@ -39,14 +38,16 @@ def _validate_partial_frame(S: List[stim.PauliString], D: List[stim.PauliString]
                 raise ValueError(f"S[{i}] must commute with D[{j}] for i!=j")
 
 
-def _symp_vec(p: stim.PauliString, n: int) -> np.ndarray:
-    return np.concatenate(stim_to_symplectic(p, n)).astype(np.uint8)
+def _symp_vec(p: stim.PauliString, n: int):
+    x, z = stim_to_symplectic(p, n)
+    return x + z
 
 
-def _symp_commutes(v1: np.ndarray, v2: np.ndarray, n: int) -> bool:
-    x1, z1 = v1[:n], v1[n:]
-    x2, z2 = v2[:n], v2[n:]
-    return ((x1 @ z2 + z1 @ x2) & 1) == 0
+def _symp_commutes(v1, v2, n: int) -> bool:
+    total = 0
+    for i in range(n):
+        total ^= (v1[i] & v2[n + i]) ^ (v1[n + i] & v2[i])
+    return (total & 1) == 0
 
 
 def _enumerate_paulis(n: int, max_weight: int = 3):
@@ -84,12 +85,14 @@ def _enumerate_all_paulis(n: int):
         yield p
 
 
-def _gf2_solve(A: np.ndarray, b: np.ndarray) -> Optional[np.ndarray]:
+def _gf2_solve(A, b):
     """Solve A x = b over GF(2); return one solution or None if inconsistent."""
-    A = A.copy().astype(np.uint8)
-    b = b.copy().astype(np.uint8)
-    m, n = A.shape
-    aug = np.concatenate([A, b.reshape(m, 1)], axis=1)
+
+    A = [row.copy() for row in A]
+    b = list(b)
+    m = len(A)
+    n = len(A[0]) if m else 0
+    aug = [row + [b[i]] for i, row in enumerate(A)]
     row = 0
     pivots = [-1] * n
     for col in range(n):
@@ -97,31 +100,30 @@ def _gf2_solve(A: np.ndarray, b: np.ndarray) -> Optional[np.ndarray]:
             break
         pivot = None
         for r in range(row, m):
-            if aug[r, col]:
+            if aug[r][col]:
                 pivot = r
                 break
         if pivot is None:
             continue
         if pivot != row:
-            aug[[row, pivot]] = aug[[pivot, row]]
+            aug[row], aug[pivot] = aug[pivot], aug[row]
         pivots[col] = row
         for r in range(m):
-            if r != row and aug[r, col]:
-                aug[r] ^= aug[row]
+            if r != row and aug[r][col]:
+                aug[r] = [(a ^ b) for a, b in zip(aug[r], aug[row])]
         row += 1
-    # Check inconsistency
     for r in range(m):
-        if aug[r, :-1].sum() == 0 and aug[r, -1] == 1:
+        if all(val == 0 for val in aug[r][:-1]) and aug[r][-1] == 1:
             return None
-    x = np.zeros(n, dtype=np.uint8)
+    x = [0] * n
     for col in range(n):
         r = pivots[col]
         if r != -1:
-            x[col] = aug[r, -1]
+            x[col] = aug[r][-1]
     return x
 
 
-def _symp_to_pauli(v: np.ndarray, n: int) -> stim.PauliString:
+def _symp_to_pauli(v, n: int) -> stim.PauliString:
     p = stim.PauliString(n)
     x = v[:n]
     z = v[n:]
@@ -135,8 +137,22 @@ def _symp_to_pauli(v: np.ndarray, n: int) -> stim.PauliString:
     return p
 
 
-def _complete_symplectic_frame(X_img, Z_img, n: int, max_weight: int = 3) -> None:
-    """Fill None entries of X_img/Z_img to complete a symplectic frame."""
+def _complete_symplectic_frame(
+    X_img,
+    Z_img,
+    n: int,
+    *,
+    max_weight: int = 3,
+    completion: str = "search",
+) -> None:
+    """Fill None entries of X_img/Z_img to complete a symplectic frame.
+
+    completion:
+        - "search": low-weight enumeration with GF(2) solving for partners
+    """
+    if completion != "search":
+        raise ValueError("Unsupported completion strategy; only 'search' is implemented")
+
     for q in range(n):
         if X_img[q] is not None and Z_img[q] is not None:
             continue
@@ -149,11 +165,11 @@ def _complete_symplectic_frame(X_img, Z_img, n: int, max_weight: int = 3) -> Non
         for v in Z_img:
             if v is not None:
                 existing.append(_symp_vec(v, n))
-        existing_mat = np.vstack(existing) if existing else np.zeros((0, 2 * n), dtype=np.uint8)
+        existing_mat = [row[:] for row in existing]
 
         found_pair = False
         # Iterate over X candidates; for each, try to find matching Z
-        for x_search_w in range(max_weight, n + 1):
+        for x_search_w in range(1, max_weight + 1):
             if found_pair:
                 break
             x_candidates = list(_enumerate_paulis(n, max_weight=x_search_w))
@@ -163,13 +179,13 @@ def _complete_symplectic_frame(X_img, Z_img, n: int, max_weight: int = 3) -> Non
                 vX = _symp_vec(X_candidate, n)
                 if any(not _symp_commutes(vX, e, n) for e in existing):
                     continue
-                in_span, _ = gf2_rowspan_decompose(existing_mat, vX) if existing_mat.size else (False, None)
+                in_span, _ = gf2_rowspan_decompose(existing_mat, vX) if existing_mat else (False, None)
                 if in_span:
                     continue
 
                 # Update temporary existing with X_candidate
                 temp_existing = existing + [vX]
-                temp_mat = np.vstack(temp_existing) if temp_existing else np.zeros((0, 2 * n), dtype=np.uint8)
+                temp_mat = [row[:] for row in temp_existing]
 
                 # Solve linear constraints for Z: commute with all temp_existing[:-1], anticommute with vX
                 constraints = []
@@ -179,10 +195,10 @@ def _complete_symplectic_frame(X_img, Z_img, n: int, max_weight: int = 3) -> Non
                     rhs.append(0)
                 constraints.append(vX)
                 rhs.append(1)
-                A = np.vstack(constraints) if constraints else np.zeros((0, 2 * n), dtype=np.uint8)
-                bvec = np.array(rhs, dtype=np.uint8)
+                A = [row[:] for row in constraints]
+                bvec = list(rhs)
                 sol = _gf2_solve(A, bvec)
-                if sol is not None and temp_mat.size:
+                if sol is not None and temp_mat:
                     in_span_z, _ = gf2_rowspan_decompose(temp_mat, sol)
                     if in_span_z:
                         sol = None
@@ -190,7 +206,7 @@ def _complete_symplectic_frame(X_img, Z_img, n: int, max_weight: int = 3) -> Non
 
                 if Z_candidate is None:
                     z_found = False
-                    for z_search_w in range(max_weight, n + 1):
+                    for z_search_w in range(1, max_weight + 1):
                         if z_found:
                             break
                         z_candidates = list(_enumerate_paulis(n, max_weight=z_search_w))
@@ -202,7 +218,7 @@ def _complete_symplectic_frame(X_img, Z_img, n: int, max_weight: int = 3) -> Non
                                 continue
                             if any(not _symp_commutes(v, e, n) for e in temp_existing):
                                 continue
-                            in_span_z, _ = gf2_rowspan_decompose(temp_mat, v) if temp_mat.size else (False, None)
+                            in_span_z, _ = gf2_rowspan_decompose(temp_mat, v) if temp_mat else (False, None)
                             if in_span_z:
                                 continue
                             Z_candidate = cand
@@ -225,7 +241,7 @@ def _complete_symplectic_frame(X_img, Z_img, n: int, max_weight: int = 3) -> Non
                 v = _symp_vec(cand, n)
                 if any(not _symp_commutes(v, e, n) for e in existing):
                     continue
-                in_span, _ = gf2_rowspan_decompose(existing_mat, v) if existing_mat.size else (False, None)
+                in_span, _ = gf2_rowspan_decompose(existing_mat, v) if existing_mat else (False, None)
                 if in_span:
                     continue
                 commuting_candidates.append((cand, v))
@@ -234,8 +250,8 @@ def _complete_symplectic_frame(X_img, Z_img, n: int, max_weight: int = 3) -> Non
                     if _symp_commutes(vX, vZ, n):
                         continue
                     # Ensure combined span independence
-                    temp_mat = np.vstack(existing + [vX])
-                    in_span_z, _ = gf2_rowspan_decompose(temp_mat, vZ) if temp_mat.size else (False, None)
+                    temp_mat = [row[:] for row in existing + [vX]]
+                    in_span_z, _ = gf2_rowspan_decompose(temp_mat, vZ) if temp_mat else (False, None)
                     if in_span_z:
                         continue
                     X_img[q] = xcand
@@ -256,15 +272,56 @@ def synthesize_clifford_from_sd_pairs(
     target_qubits: Optional[List[int]] = None,
     direction: str = "pairs_to_standard",
     max_weight_search: int = 3,
+    completion: str = "search",
 ) -> Dict[str, object]:
-    """Return a Clifford tableau/circuit consistent with stabilizer-destabilizer pairs.
+    """Return a Clifford tableau/circuit consistent with stabilizer–destabilizer pairs.
 
-    direction:
-        - "pairs_to_standard": return C s.t. C S_i C† = Z_q, C D_i C† = X_q
-        - "standard_to_pairs": return T that sends Z_q->S_i, X_q->D_i
+    This is the high-level entry point described in ``backend/clifford-from-map.md``. The
+    inputs ``pairs`` are strings that describe stabilizer/destabilizer partners following
+    the sparse format accepted by :func:`pauli_handling.parse_sparse_pauli` (e.g. ``"Z1 X3"``).
+    Each tuple must anticommute within the pair and commute with all other tuples. The
+    routine completes the partial symplectic frame, synthesizes a Stim tableau, and returns
+    both the tableau and the corresponding Clifford circuit.
+
+    Args:
+        pairs: ``[(S_0, D_0), (S_1, D_1), ...]`` where each entry is a sparse Pauli string
+            describing the stabilizer ``S_i`` and its destabilizer partner ``D_i``.
+        num_qubits: Total number of qubits for the Clifford/tableau.
+        target_qubits: Optional explicit mapping ``q_i`` where each pair should land in the
+            canonical frame (default ``q_i=i``). Length must match ``pairs`` and qubits must
+            be distinct.
+        direction: If ``"pairs_to_standard"`` (default) the returned Clifford ``C`` maps the
+            provided frame to canonical single-qubit Paulis: ``C S_i C† = Z_{q_i}``,
+            ``C D_i C† = X_{q_i}``. If ``"standard_to_pairs"``, returns a tableau ``T`` that
+            performs the inverse mapping ``Z_{q_i} -> S_i``, ``X_{q_i} -> D_i``.
+        max_weight_search: Maximum Pauli weight when enumerating candidates to complete the
+            symplectic basis.
+        completion: Strategy for filling missing generators (currently only ``"search"``).
+
+    Returns:
+        dict with keys:
+            "tableau": Stim tableau implementing the requested mapping.
+            "circuit": Clifford circuit derived from the tableau.
+            "target_qubits": The resolved target qubits used for the mapping.
+            "diagnostics": Sparse representations of the completed symplectic frame.
+
+    Example:
+        >>> pairs = [
+        ...     ("Z1 X3", "Z3"),
+        ...     ("Z0 Z2 X4", "X2"),
+        ...     ("Y0 Y1 Z3 Z4", "Z0"),
+        ...     ("Z0 X1 X2 Z3 Z4", "Z0 Z1"),
+        ... ]
+        >>> result = synthesize_clifford_from_sd_pairs(pairs, num_qubits=5)
+        >>> result["tableau"].verify()  # doctest: +ELLIPSIS
+        ...
+        >>> result["circuit"]  # doctest: +ELLIPSIS
+        stim.Circuit(...)
     """
     if num_qubits <= 0:
         raise ValueError("num_qubits must be positive")
+    if direction not in ("pairs_to_standard", "standard_to_pairs"):
+        raise ValueError("direction must be 'pairs_to_standard' or 'standard_to_pairs'")
     m = len(pairs)
     if target_qubits is None:
         target_qubits = list(range(m))
@@ -283,7 +340,13 @@ def synthesize_clifford_from_sd_pairs(
         Z_img[q] = S[i]
         X_img[q] = D[i]
 
-    _complete_symplectic_frame(X_img, Z_img, num_qubits, max_weight=max_weight_search)
+    _complete_symplectic_frame(
+        X_img,
+        Z_img,
+        num_qubits,
+        max_weight=max_weight_search,
+        completion=completion,
+    )
 
     ctor = getattr(stim.Tableau, "from_conjugated_generators", None)
     if ctor is None:

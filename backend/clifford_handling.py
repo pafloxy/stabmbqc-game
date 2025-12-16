@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import Dict, Iterable, List, Sequence, Tuple
 
-import stim
+from backend.stim_import import stim
 
 PauliDict = Dict[str, set]
 CliffordStimMap = Dict[int, Dict[str, stim.PauliString]]

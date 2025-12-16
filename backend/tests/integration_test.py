@@ -9,7 +9,7 @@ import sys
 import os
 import random
 import numpy as np
-import stim
+from backend.stim_import import stim
 
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))

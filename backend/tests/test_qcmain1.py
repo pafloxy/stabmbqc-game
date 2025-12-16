@@ -23,7 +23,7 @@ import numpy as np
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-import stim
+from backend.stim_import import stim
 from qcmain1 import (
     generate_stabilizer_generators,
     initialize_alice_bob_system,

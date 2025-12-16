@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Dict, List, Tuple
 
-import stim
+from backend.stim_import import stim
 
 
 def canonicalize_sparse_pauli(pauli_spec: str) -> str:
@@ -95,11 +95,10 @@ def paulistring_to_sparse(p: stim.PauliString) -> str:
 
 
 def stim_to_symplectic(p: stim.PauliString, n: int):
-    """Return (x, z) bit-vectors (np.uint8) of length n for a Stim PauliString."""
-    import numpy as np
+    """Return (x, z) bit-vectors (lists of ints) for a Stim PauliString."""
 
-    x = np.zeros(n, dtype=np.uint8)
-    z = np.zeros(n, dtype=np.uint8)
+    x = [0] * n
+    z = [0] * n
     for i in range(n):
         op = p[i]
         if op == _CHAR_TO_OPCODE["X"]:
@@ -117,20 +116,20 @@ def gf2_rowspan_decompose(S, p):
     Decide whether p is in rowspan(S) over GF(2), returning (in_span, coeffs).
 
     Args:
-        S: (m, d) uint8 matrix over GF(2)
-        p: (d,) uint8 vector over GF(2)
+        S: matrix as list of rows, each a list of bits (m x d)
+        p: list of length d
 
     Returns:
         (in_span, coeffs)
         - in_span: True iff p ∈ rowspan(S)
-        - coeffs: length-m uint8 vector; when in_span=True, coeffs^T S = p (mod 2)
+        - coeffs: length-m list; when in_span=True, coeffs^T S = p (mod 2)
     """
-    import numpy as np
 
-    S = S.copy().astype(np.uint8)
-    p = p.copy().astype(np.uint8)
-    m, d = S.shape
-    comb = np.eye(m, dtype=np.uint8)
+    m = len(S)
+    d = len(S[0]) if m else len(p)
+    S = [row.copy() for row in S]
+    p = list(p)
+    comb = [[1 if i == j else 0 for j in range(m)] for i in range(m)]
 
     pivot_row = 0
     pivots: List[Tuple[int, int]] = []
@@ -139,28 +138,28 @@ def gf2_rowspan_decompose(S, p):
             break
         pr = None
         for r in range(pivot_row, m):
-            if S[r, col]:
+            if S[r][col]:
                 pr = r
                 break
         if pr is None:
             continue
         if pr != pivot_row:
-            S[[pivot_row, pr]] = S[[pr, pivot_row]]
-            comb[[pivot_row, pr]] = comb[[pr, pivot_row]]
+            S[pivot_row], S[pr] = S[pr], S[pivot_row]
+            comb[pivot_row], comb[pr] = comb[pr], comb[pivot_row]
         for r in range(pivot_row + 1, m):
-            if S[r, col]:
-                S[r] ^= S[pivot_row]
-                comb[r] ^= comb[pivot_row]
+            if S[r][col]:
+                S[r] = [(a ^ b) for a, b in zip(S[r], S[pivot_row])]
+                comb[r] = [(a ^ b) for a, b in zip(comb[r], comb[pivot_row])]
         pivots.append((pivot_row, col))
         pivot_row += 1
 
-    coeffs = np.zeros(m, dtype=np.uint8)
+    coeffs = [0] * m
     for r, col in pivots:
         if p[col]:
-            p ^= S[r]
-            coeffs ^= comb[r]
+            p = [(a ^ b) for a, b in zip(p, S[r])]
+            coeffs = [(a ^ b) for a, b in zip(coeffs, comb[r])]
 
-    in_span = bool((p == 0).all())
+    in_span = all(val == 0 for val in p)
     return in_span, coeffs
 
 
@@ -198,8 +197,6 @@ def is_logical_pauli_sparse(
           pattern only.
         - Stabilizers are assumed mutually commuting and independent.
     """
-
-    import numpy as np
 
     def _infer_num_qubits() -> int:
         if num_qubits is not None:
@@ -239,7 +236,12 @@ def is_logical_pauli_sparse(
     # Commutation check via symplectic form
     anticommuting_indices = []
     for i, (x, z) in enumerate(zip(x_g, z_g)):
-        comm = (np.dot(x_c, z) + np.dot(z_c, x)) % 2
+        comm_sum = 0
+        for a, b in zip(x_c, z):
+            comm_sum += a * b
+        for a, b in zip(z_c, x):
+            comm_sum += a * b
+        comm = comm_sum % 2
         if comm == 1:
             anticommuting_indices.append(i)
     if anticommuting_indices:
@@ -248,12 +250,12 @@ def is_logical_pauli_sparse(
             "note": f"Anticommutes with generators {anticommuting_indices}; not logical and not in stabilizer group.",
         }
 
-    S = np.vstack([np.concatenate([x, z]) for x, z in zip(x_g, z_g)]).astype(np.uint8)
-    p_vec = np.concatenate([x_c, z_c]).astype(np.uint8)
+    S = [x + z for x, z in zip(x_g, z_g)]
+    p_vec = x_c + z_c
 
     in_span, coeffs = gf2_rowspan_decompose(S, p_vec)
     if in_span:
-        selected_indices = [int(i) for i, v in enumerate(coeffs.tolist()) if v == 1]
+        selected_indices = [int(i) for i, v in enumerate(coeffs) if v == 1]
         prod = stim.PauliString(n)
         for i in selected_indices:
             prod *= gens[i]

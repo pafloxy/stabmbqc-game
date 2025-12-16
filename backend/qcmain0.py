@@ -13,7 +13,7 @@ see qcmain1.py.
 from __future__ import annotations
 
 from typing import List, Tuple, Optional
-import stim
+from backend.stim_import import stim
 
 
 # ==========================
