@@ -38,6 +38,26 @@ def test_pairs_to_standard_conjugation():
         assert out_D == want_D
 
 
+def test_completion_respects_commutation():
+    pairs = [
+        ("Z0 Z1", "X0 Z1"),
+        ("Z1 Z2", "Z1 X2"),
+    ]
+    num_qubits = 3
+    res = synthesize_clifford_from_sd_pairs(pairs, num_qubits=num_qubits)
+    C = res["tableau"]
+
+    for i, (S_spec, D_spec) in enumerate(pairs):
+        S = parse_sparse_pauli(S_spec, num_qubits=num_qubits)
+        D = parse_sparse_pauli(D_spec, num_qubits=num_qubits)
+        want_S = stim.PauliString(num_qubits)
+        want_S[i] = "Z"
+        want_D = stim.PauliString(num_qubits)
+        want_D[i] = "X"
+        assert C(S) == want_S
+        assert C(D) == want_D
+
+
 def test_invalid_frame_raises():
     pairs = [("Z0", "Z0")]  # commute -> invalid
     with pytest.raises(ValueError):

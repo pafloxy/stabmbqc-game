@@ -323,7 +323,7 @@ function render() {
 // ==========================
 
 function renderHome(container) {
-  const title = campaignData?.meta?.title || "Stabilizer Survival";
+  const title = campaignData?.meta?.title || "Measurement Survival";
   const subtitle = campaignData?.meta?.subtitle || "";
 
   container.innerHTML = `

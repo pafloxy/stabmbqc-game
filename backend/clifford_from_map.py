@@ -50,6 +50,12 @@ def _symp_commutes(v1, v2, n: int) -> bool:
     return (total & 1) == 0
 
 
+def _symp_constraint_row(v):
+    """Return row r so that dot(candidate, r) = symplectic_inner(candidate, v)."""
+    n = len(v) // 2
+    return v[n:] + v[:n]
+
+
 def _enumerate_paulis(n: int, max_weight: int = 3):
     """Yield stim.PauliString of weight up to max_weight."""
     from itertools import combinations, product
@@ -191,9 +197,9 @@ def _complete_symplectic_frame(
                 constraints = []
                 rhs = []
                 for e in temp_existing[:-1]:
-                    constraints.append(e)
+                    constraints.append(_symp_constraint_row(e))
                     rhs.append(0)
-                constraints.append(vX)
+                constraints.append(_symp_constraint_row(vX))
                 rhs.append(1)
                 A = [row[:] for row in constraints]
                 bvec = list(rhs)
