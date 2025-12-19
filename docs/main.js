@@ -147,16 +147,13 @@ async function getSlideText(slide) {
     // Extract title: prioritize H1 from markdown, fall back to JSON title field
     let extractedTitle = "";
     const h1Match = txt.match(/^#\s+(.+)$/m);
-    console.log('H1 extraction debug:', { h1Match, slideTitle: slide.title, textPath: slide.textPath });
     if (h1Match) {
       // H1 found in markdown - use it and remove from body
       extractedTitle = h1Match[1].trim();
       txt = txt.replace(/^#\s+.+$/m, "").trim();
-      console.log('Using H1 from markdown:', extractedTitle);
     } else {
       // No H1 in markdown - use title from JSON
       extractedTitle = slide.title || "";
-      console.log('Using title from JSON:', extractedTitle);
     }
     
     const result = { title: extractedTitle, body: txt };
@@ -179,10 +176,8 @@ function setSlideBodyText(slide, el, titleEl) {
     // Avoid race: only update if still same slide element
     if (el.dataset.slideId === cacheKey) {
       // Update title if element provided and title extracted
-      console.log('Setting title:', { titleEl, dataTitle: data.title });
       if (titleEl && data.title) {
         titleEl.textContent = data.title;
-        console.log('Title element updated to:', data.title);
       }
       
       typeTextIntoElement(el, data.body, {
@@ -698,7 +693,7 @@ function renderRound(container) {
             data-id="${opt.id}" 
             ${appState.hasAnsweredThisStep ? 'disabled' : ''}>
       <span class="option-id">${opt.id}</span>
-      <span class="option-label">${opt.label}</span>
+      <span class="option-label">${markdownToHtml(opt.label)}</span>
     </button>
   `).join("");
 
@@ -709,7 +704,7 @@ function renderRound(container) {
     const fbText = isCorrect 
       ? (step.feedback?.on_correct_markdown || "Correct!") 
       : (step.feedback?.on_wrong_markdown || "Wrong!");
-    feedbackHtml = `<div class="feedback ${isCorrect ? 'feedback-correct' : 'feedback-wrong'}">${fbText}</div>`;
+    feedbackHtml = `<div class="feedback ${isCorrect ? 'feedback-correct' : 'feedback-wrong'}">${markdownToHtml(fbText)}</div>`;
   }
 
   // Next button logic
