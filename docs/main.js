@@ -53,6 +53,56 @@ function renderLatex(element = document.body) {
 }
 
 // ==========================
+// Typewriter effect
+// ==========================
+
+const typewriterState = new WeakMap();
+
+function stopTypewriter(el) {
+  const state = typewriterState.get(el);
+  if (state?.handle) {
+    clearTimeout(state.handle);
+  }
+  el?.classList?.remove("is-typing");
+  typewriterState.delete(el);
+}
+
+function typeTextIntoElement(el, text = "", options = {}) {
+  if (!el) return;
+
+  const chunkSize = options.chunkSize || 3;
+  const delayMs = options.delayMs || 2;
+
+  stopTypewriter(el);
+  const token = Symbol("typewriter");
+  const state = { token, handle: null };
+  typewriterState.set(el, state);
+
+  el.textContent = "";
+  el.classList.add("typewriter", "is-typing");
+
+  let index = 0;
+  const revealNext = () => {
+    if (typewriterState.get(el)?.token !== token) return;
+
+    el.textContent = text.slice(0, index);
+    index += chunkSize;
+
+    if (index <= text.length) {
+      state.handle = setTimeout(revealNext, delayMs);
+    } else {
+      stopTypewriter(el);
+      el.textContent = text;
+      if (typeof options.onComplete === "function") {
+        options.onComplete();
+      }
+    }
+  };
+
+  revealNext();
+}
+
+// ==========================
 // Intro slide text loader (supports textPath)
 // ==========================
 
@@ -85,12 +135,20 @@ function setSlideBodyText(slide, el) {
   const cacheKey = slide.id || `slide-${Date.now()}`;
   el.dataset.slideId = cacheKey;
   el.textContent = "Loading...";
+  el.classList.add("typewriter");
 
   getSlideText(slide).then((text) => {
     // Avoid race: only update if still same slide element
     if (el.dataset.slideId === cacheKey) {
-      el.textContent = text;
-      renderLatex(el);
+      typeTextIntoElement(el, text, {
+        delayMs: 12,
+        chunkSize: 1,
+        onComplete: () => {
+          if (el.dataset.slideId === cacheKey) {
+            renderLatex(el);
+          }
+        }
+      });
     }
   });
 }

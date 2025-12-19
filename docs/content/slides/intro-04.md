@@ -1,3 +1,8 @@
+---
+date-init: Sunday, December 14th 2025, 5:02:03 pm
+date-modified: Friday, December 19th 2025, 12:01:51 am
+---
+
 Each round shows:
 
 - Alice's current stabilizer generators (what she knows).

@@ -1,3 +1,8 @@
+---
+date-init: Sunday, December 14th 2025, 5:02:03 pm
+date-modified: Friday, December 19th 2025, 12:02:04 am
+---
+
 Buttons you'll have:
 
 - Prev / Next: step through story slides.

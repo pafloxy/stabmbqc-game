@@ -183,6 +183,19 @@ body::after {
   white-space: pre-line;
 }
 
+.slide-body.typewriter {
+  position: relative;
+}
+
+.typewriter.is-typing::after {
+  content: "_";
+  display: inline-block;
+  width: 8px;
+  margin-left: 4px;
+  color: var(--accent);
+  animation: cursor-blink 0.85s steps(1, start) infinite;
+}
+
 .slide-images {
   text-align: center;
   margin-bottom: 20px;
@@ -685,6 +698,11 @@ body::after {
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 @keyframes pulse-glow {

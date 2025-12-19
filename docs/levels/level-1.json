@@ -18,7 +18,7 @@
   "intro_slides": [
     {
       "id": "intro-1",
-      "title": "Stabilizer Survival: The Kingdom State",
+      "title": "Measurement Survival: The Kingdom State",
       "textPath": "content/slides/intro-01.md",
       "images": []
     },
@@ -95,7 +95,7 @@
           "timer": {"enabled": false, "seconds": 25}
         }
       ]
-    },
+    },  
     {
       "id": "r2",
       "title": "Round 2: Another measurement choice",

@@ -208,7 +208,22 @@ def conjugate_pauli_via_map(
         op = p[qubit]
         if op == 0:
             continue  # Identity
-        elif op == 1:  # X
+        
+        # If qubit not in mapping, apply identity (leave unchanged)
+        if qubit not in mapping:
+            identity_term = stim.PauliString(num_qubits)
+            if op == 1:  # X
+                identity_term[qubit] = "X"
+            elif op == 3:  # Z
+                identity_term[qubit] = "Z"
+            elif op == 2:  # Y
+                identity_term[qubit] = "Y"
+            else:
+                raise ValueError(f"Unexpected Pauli opcode {op} at qubit {qubit}")
+            result *= identity_term
+            continue
+        
+        if op == 1:  # X
             term = mapping[qubit]["X"]
         elif op == 3:  # Z
             term = mapping[qubit]["Z"]
