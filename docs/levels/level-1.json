@@ -81,7 +81,7 @@
         {
           "id": "r1-s1",
           "kind": "select_measurement",
-          "prompt_markdown": "Charlie offers these Pauli measurements. Pick the one that is **non-destructive** (SAFE).",
+          "promptPath": "content/rounds/r1-s1-prompt.md",
           "options": [
             {"id": "A", "label": "$X0$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
             {"id": "B", "label": "$Z0\\,Z1\\,Z2$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},
@@ -117,7 +117,7 @@
         {
           "id": "r2-s1",
           "kind": "select_measurement",
-          "prompt_markdown": "Charlie offers these measurements. Which one is **SAFE**?",
+          "promptPath": "content/rounds/r2-s1-prompt.md",
           "options": [
             {"id": "A", "label": "$X2$", "detail_markdown": "Pauli $X$ on qubit 2 only (sparse: X2)"},
             {"id": "B", "label": "$X1$", "detail_markdown": "Pauli $X$ on qubit 1 only (sparse: X1)"},
@@ -153,7 +153,7 @@
         {
           "id": "r3-s1",
           "kind": "select_measurement",
-          "prompt_markdown": "After Bob's $\\mathrm{CZ}$ attack, the stabilizers evolved. Which measurement is **SAFE**?",
+          "promptPath": "content/rounds/r3-s1-prompt.md",
           "options": [
             {"id": "A", "label": "$X0$", "detail_markdown": "$X$ on Alice qubit 0 (sparse: X0)"},
             {"id": "B", "label": "$X3$", "detail_markdown": "$X$ on Bob qubit 3 only (sparse: X3)"},
@@ -169,7 +169,7 @@
         {
           "id": "r3-s2",
           "kind": "select_correction",
-          "prompt_markdown": "Charlie measured $X_0$ and got outcome $m = -1$. Which byproduct correction should Alice apply?",
+          "promptPath": "content/rounds/r3-s2-prompt.md",
           "options": [
             {"id": "A", "label": "$Z_1$", "detail_markdown": "Apply $Z$ on qubit 1"},
             {"id": "B", "label": "$X_1$", "detail_markdown": "Apply $X$ on qubit 1"},

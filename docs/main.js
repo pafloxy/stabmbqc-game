@@ -22,6 +22,7 @@ const appState = {
 let campaignData = null;
 const slideTextCache = new Map();
 const roundContextCache = new Map();
+const stepPromptCache = new Map();
 const infoOverlayState = { mode: "rules" };
 
 // ==========================
@@ -178,6 +179,33 @@ async function getRoundContext(round) {
   } catch (err) {
     console.warn(err.message);
     return "";
+  }
+}
+
+// ==========================
+// Step prompt text loader (supports promptPath)
+// ==========================
+
+async function getStepPrompt(step) {
+  if (!step) return "Make your choice:";
+  if (step.prompt_markdown) return step.prompt_markdown;
+  if (!step.promptPath) return "Make your choice:";
+
+  if (stepPromptCache.has(step.promptPath)) {
+    return stepPromptCache.get(step.promptPath);
+  }
+
+  try {
+    const resp = await fetch(step.promptPath);
+    if (!resp.ok) {
+      throw new Error(`Failed to load step prompt from ${step.promptPath}`);
+    }
+    const txt = await resp.text();
+    stepPromptCache.set(step.promptPath, txt);
+    return txt;
+  } catch (err) {
+    console.warn(err.message);
+    return "Make your choice:";
   }
 }
 
@@ -638,8 +666,8 @@ function renderRound(container) {
         </div>
         
         <div class="round-right">
-          <div class="step-prompt">
-            <h2>${step.prompt_markdown || "Make your choice:"}</h2>
+          <div class="step-prompt" id="step-prompt-box">
+            <h2>Loading prompt...</h2>
           </div>
           
           <div class="options-container">
@@ -665,6 +693,16 @@ function renderRound(container) {
       renderLatex(contextBox);
     });
   }
+
+  // Load and render step prompt
+  const promptBox = $("#step-prompt-box");
+  if (promptBox) {
+    getStepPrompt(step).then((text) => {
+      promptBox.innerHTML = `<h2>${markdownToHtml(text)}</h2>`;
+      renderLatex(promptBox);
+    });
+  }
+
   // Wire up event handlers
   $$(".option-btn").forEach(btn => {
     btn.addEventListener("click", () => {

@@ -1,0 +1,1 @@
+Charlie measured $X_0$ and got outcome $m = -1$. Which byproduct correction should Alice apply?

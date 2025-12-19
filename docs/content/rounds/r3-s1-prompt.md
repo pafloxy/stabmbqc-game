@@ -1,0 +1,1 @@
+After Bob's $\mathrm{CZ}$ attack, the stabilizers evolved. Which measurement is **SAFE**?
