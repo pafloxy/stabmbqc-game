@@ -16,13 +16,16 @@ const appState = {
   selectedOptionId: null,
   hasAnsweredThisStep: false,
   timer: { active: false, remaining: 0, handle: null },
-  stats: { correct: 0, wrong: 0 }
+  stats: { correct: 0, wrong: 0 },
+  gameOverReason: null // "timeout" | "wrong_answer" | null
 };
 
 let campaignData = null;
+const CACHE_VERSION = "v2"; // Increment to invalidate old caches
 const slideTextCache = new Map();
 const roundContextCache = new Map();
 const stepPromptCache = new Map();
+const circuitTextCache = new Map();
 const infoOverlayState = { mode: "rules" };
 
 // ==========================
@@ -39,6 +42,11 @@ function $$(selector) {
 
 function markdownToHtml(text) {
   return (text || "").replace(/\n/g, "<br>");
+}
+
+function stripYamlFrontmatter(text) {
+  // Remove YAML frontmatter delimited by --- at start and end
+  return text.replace(/^---\s*\n[\s\S]*?\n---\s*\n/, "");
 }
 
 // ==========================
@@ -109,13 +117,16 @@ function typeTextIntoElement(el, text = "", options = {}) {
 // ==========================
 
 async function getSlideText(slide) {
-  if (!slide) return "";
-  if (slide.body_markdown) return slide.body_markdown;
-  if (slide.text) return slide.text;
-  if (!slide.textPath) return "";
+  if (!slide) return { title: "", body: "" };
+  
+  // Handle legacy inline content
+  if (slide.body_markdown) return { title: slide.title || "", body: slide.body_markdown };
+  if (slide.text) return { title: slide.title || "", body: slide.text };
+  if (!slide.textPath) return { title: slide.title || "", body: "" };
 
-  if (slideTextCache.has(slide.textPath)) {
-    return slideTextCache.get(slide.textPath);
+  const cacheKey = `${CACHE_VERSION}:${slide.textPath}`;
+  if (slideTextCache.has(cacheKey)) {
+    return slideTextCache.get(cacheKey);
   }
 
   try {
@@ -123,26 +134,53 @@ async function getSlideText(slide) {
     if (!resp.ok) {
       throw new Error(`Failed to load slide text from ${slide.textPath}`);
     }
-    const txt = await resp.text();
-    slideTextCache.set(slide.textPath, txt);
-    return txt;
+    let txt = await resp.text();
+    
+    // Strip YAML frontmatter
+    txt = stripYamlFrontmatter(txt);
+    
+    // Extract title: prioritize H1 from markdown, fall back to JSON title field
+    let extractedTitle = "";
+    const h1Match = txt.match(/^#\s+(.+)$/m);
+    console.log('H1 extraction debug:', { h1Match, slideTitle: slide.title, textPath: slide.textPath });
+    if (h1Match) {
+      // H1 found in markdown - use it and remove from body
+      extractedTitle = h1Match[1].trim();
+      txt = txt.replace(/^#\s+.+$/m, "").trim();
+      console.log('Using H1 from markdown:', extractedTitle);
+    } else {
+      // No H1 in markdown - use title from JSON
+      extractedTitle = slide.title || "";
+      console.log('Using title from JSON:', extractedTitle);
+    }
+    
+    const result = { title: extractedTitle, body: txt };
+    slideTextCache.set(cacheKey, result);
+    return result;
   } catch (err) {
     console.warn(err.message);
-    return "";
+    return { title: slide.title || "", body: "" };
   }
 }
 
-function setSlideBodyText(slide, el) {
+function setSlideBodyText(slide, el, titleEl) {
   if (!el || !slide) return;
   const cacheKey = slide.id || `slide-${Date.now()}`;
   el.dataset.slideId = cacheKey;
   el.textContent = "Loading...";
   el.classList.add("typewriter");
 
-  getSlideText(slide).then((text) => {
+  getSlideText(slide).then((data) => {
     // Avoid race: only update if still same slide element
     if (el.dataset.slideId === cacheKey) {
-      typeTextIntoElement(el, text, {
+      // Update title if element provided and title extracted
+      console.log('Setting title:', { titleEl, dataTitle: data.title });
+      if (titleEl && data.title) {
+        titleEl.textContent = data.title;
+        console.log('Title element updated to:', data.title);
+      }
+      
+      typeTextIntoElement(el, data.body, {
         delayMs: 12,
         chunkSize: 1,
         onComplete: () => {
@@ -173,7 +211,8 @@ async function getRoundContext(round) {
     if (!resp.ok) {
       throw new Error(`Failed to load round context from ${round.contextPath}`);
     }
-    const txt = await resp.text();
+    let txt = await resp.text();
+    txt = stripYamlFrontmatter(txt);
     roundContextCache.set(round.contextPath, txt);
     return txt;
   } catch (err) {
@@ -200,7 +239,8 @@ async function getStepPrompt(step) {
     if (!resp.ok) {
       throw new Error(`Failed to load step prompt from ${step.promptPath}`);
     }
-    const txt = await resp.text();
+    let txt = await resp.text();
+    txt = stripYamlFrontmatter(txt);
     stepPromptCache.set(step.promptPath, txt);
     return txt;
   } catch (err) {
@@ -210,11 +250,43 @@ async function getStepPrompt(step) {
 }
 
 // ==========================
+// Circuit text loader (for .txt circuit diagrams)
+// ==========================
+
+async function getCircuitText(circuitPath) {
+  if (!circuitPath) return "";
+  
+  if (circuitTextCache.has(circuitPath)) {
+    return circuitTextCache.get(circuitPath);
+  }
+
+  try {
+    const resp = await fetch(circuitPath);
+    if (!resp.ok) {
+      throw new Error(`Failed to load circuit from ${circuitPath}`);
+    }
+    const txt = await resp.text();
+    circuitTextCache.set(circuitPath, txt);
+    return txt;
+  } catch (err) {
+    console.warn(err.message);
+    return "";
+  }
+}
+
+// ==========================
 // Asset path resolver
 // ==========================
 
 function resolveAssetPath(relativePath) {
   if (!campaignData || !relativePath) return relativePath;
+  
+  // If path starts with 'content/', use it as-is (relative to docs root)
+  if (relativePath.startsWith('content/')) {
+    return relativePath;
+  }
+  
+  // Otherwise prepend assets_base
   const base = campaignData.meta?.assets_base || "assets";
   return `${base}/${relativePath}`;
 }
@@ -236,6 +308,7 @@ function startTimer(seconds, onExpire) {
     updateTimerUI(appState.timer.remaining);
     if (appState.timer.remaining <= 0) {
       stopTimer();
+      appState.gameOverReason = "timeout";
       onExpire();
     }
   }, 1000);
@@ -329,6 +402,7 @@ function restartGame() {
   appState.selectedOptionId = null;
   appState.hasAnsweredThisStep = false;
   appState.stats = { correct: 0, wrong: 0 };
+  appState.gameOverReason = null;
   render();
 }
 
@@ -500,7 +574,7 @@ function renderIntro(container) {
   container.innerHTML = `
     <div class="screen intro-screen">
       <div class="intro-content">
-        <h1 class="slide-title">${slide.title || ""}</h1>
+        <h1 class="slide-title">${slide.title || "Loading..."}</h1>
         <div class="slide-body"></div>
         ${imagesHtml}
         <div class="intro-controls">
@@ -546,7 +620,8 @@ function renderIntro(container) {
   });
 
   const slideBody = container.querySelector(".slide-body");
-  setSlideBodyText(slide, slideBody);
+  const slideTitle = container.querySelector(".slide-title");
+  setSlideBodyText(slide, slideBody, slideTitle);
 }
 
 // ==========================
@@ -594,11 +669,22 @@ function renderRound(container) {
 
   // Build assets HTML
   let assetsHtml = "";
-  if (round.assets?.circuit_image || round.assets?.graph_image) {
-    assetsHtml = `<div class="round-assets">
-      ${round.assets.graph_image ? `<img src="${resolveAssetPath(round.assets.graph_image)}" alt="Graph" class="asset-img" onerror="this.style.display='none'" />` : ""}
-      ${round.assets.circuit_image ? `<img src="${resolveAssetPath(round.assets.circuit_image)}" alt="Circuit" class="asset-img" onerror="this.style.display='none'" />` : ""}
-    </div>`;
+  const assetParts = [];
+  
+  if (round.assets?.graph_image) {
+    assetParts.push(`<img src="${resolveAssetPath(round.assets.graph_image)}" alt="Graph" class="asset-img" onerror="this.style.display='none'" />`);
+  }
+  
+  if (round.assets?.circuit_image) {
+    if (round.assets.circuit_image.endsWith('.txt')) {
+      assetParts.push(`<pre class="circuit-text" id="circuit-text-display">Loading circuit...</pre>`);
+    } else {
+      assetParts.push(`<img src="${resolveAssetPath(round.assets.circuit_image)}" alt="Circuit" class="asset-img" onerror="this.style.display='none'" />`);
+    }
+  }
+  
+  if (assetParts.length > 0) {
+    assetsHtml = `<div class="round-assets">${assetParts.join('')}</div>`;
   }
 
   // Build options HTML
@@ -703,6 +789,16 @@ function renderRound(container) {
     });
   }
 
+  // Load circuit text if .txt file
+  if (round.assets?.circuit_image && round.assets.circuit_image.endsWith('.txt')) {
+    const circuitDisplay = $("#circuit-text-display");
+    if (circuitDisplay) {
+      getCircuitText(resolveAssetPath(round.assets.circuit_image)).then((text) => {
+        circuitDisplay.textContent = text;
+      });
+    }
+  }
+
   // Wire up event handlers
   $$(".option-btn").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -767,6 +863,8 @@ function handleOptionClick(optionId) {
     appState.stats.correct += 1;
   } else {
     appState.stats.wrong += 1;
+    appState.gameOverReason = "wrong_answer";
+    appState.phase = "gameover";
   }
 
   render();
@@ -777,11 +875,19 @@ function handleOptionClick(optionId) {
 // ==========================
 
 function renderGameOver(container) {
+  let message = "The measurement hacker got through!";
+  
+  if (appState.gameOverReason === "timeout") {
+    message = "You took too long, Charlie blew her cover";
+  } else if (appState.gameOverReason === "wrong_answer") {
+    message = "Wrong choice! You ruined the secret ..";
+  }
+  
   container.innerHTML = `
     <div class="screen gameover-screen">
       <div class="gameover-content">
         <h1 class="gameover-title">GAME OVER</h1>
-        <p class="gameover-message">The measurement hacker got through!</p>
+        <p class="gameover-message">${message}</p>
         <div class="gameover-stats">
           <p>Correct answers: ${appState.stats.correct}</p>
           <p>Rounds completed: ${appState.roundIndex}</p>

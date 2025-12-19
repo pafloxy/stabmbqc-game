@@ -66,8 +66,8 @@
       "difficulty": 1,
       "contextPath": "content/rounds/r1-context.md",
       "assets": {
-        "circuit_image": "rounds/r1-circuit.png",
-        "graph_image": "rounds/r1-graph.png"
+        "circuit_image": "content/images/r1-circuit.txt",
+        "graph_image": ""
       },
       "qc_spec": {
         "n_qubits": 3,

@@ -1,19 +1,15 @@
 ---
-date-init: Sunday, December 14th 2025, 5:02:03 pm
-date-modified: Friday, December 19th 2025, 11:34:33 am
+date-init: Friday, December 19th 2025, 10:35:21 am
+date-modified: Friday, December 19th 2025, 11:13:44 am
 ---
 
-# The 'Logical' Problem 
-
-Our aim thus is to save the logical information encoded in the states from being ruined due to irreversible transformations due to measurements. 
-
-A reversible logical transformation (a logical unitary) on the system is however fine, as long as we can figure out the transformations exactly, since we can revert it to get the state back. An example is as follows.
+# Intro slide: Three measurement types (stabilizer, correctable, irreversible)
 
 Imagine we have the following encoded logical state:  
 $$  
 \ket{\mathcal{S},\psi}=\alpha\ket{000} \: + e^{i\phi}\:\beta\ket{111},  
 $$  
-where the logical information in encoded via **unknown coefficients** $\alpha,\beta$ and **phase** $\phi$ , but **known** stabilizer generators $\mathcal{S}=\{Z_{0}Z_{1},Z_{1}Z_{2}\}.$ Verify that the group $\langle{\mathcal{S}}\rangle$ stabilizes $\ket{\mathcal{S}, \psi}$.
+where the logical information in encoded via **unknown coefficients** $\alpha,\beta$ and **phase** $\phi$ , but **known** stabilizer generators $\mathcal{S}=\{Z_{0}Z_{1},Z_{1}Z_{2}\}.$ Verify that the group $\braket{\mathcal{S}}$ stabilizes $\ket{\mathcal{S}, \psi}$.
 
 Now we will see how three generically different measurements affect the state. 
 ## Case 1 — Stabilizer measurement (harmless)
@@ -57,7 +53,7 @@ $$
 \big(\alpha\ket{+}\ket{00}+e^{i\phi}\beta\ket{+}\ket{11}\big).  
 $$
 
-The randomness appears only as a  **pauli byproduct** which can be deduced directly from the knowledge of the stabilizer group  $\langle{\mathcal{S}}\rangle$.
+The randomness appears only as a  **pauli byproduct** which can be deduced directly from the knowledge of the stabilizer group  $\braket{\mathcal{S}}$.
 
 **Verdict: Deterministic after Deducible corrections.**
 
@@ -79,7 +75,15 @@ Post‑measurement states thus are $\ket{000}\quad\text{or}\quad\ket{111}$ with 
 
 **Verdict: Irreversible logical transformation**
 
+---
 
+## Takeaway
 
+- Stabilizer measurement → safe.
+    
+- Destabilizer measurement → safe _if_ its randomness is correctable.
+    
+- Logical measurement → irreversible.
+    
 
-
+**In the game, your goal is to avoid Case 3.**
