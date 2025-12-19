@@ -7,6 +7,11 @@
 // Global State
 // ==========================
 
+// Detect base path for GitHub Pages or other deployments
+const BASE_PATH = window.location.pathname.includes('/stabmbqc-game/') 
+  ? '/stabmbqc-game' 
+  : '';
+
 const appState = {
   phase: "home", // home | intro | info | round | gameover | victory
   previousPhase: null, // for returning from info overlay
@@ -130,7 +135,7 @@ async function getSlideText(slide) {
   }
 
   try {
-    const resp = await fetch(slide.textPath);
+    const resp = await fetch(BASE_PATH + '/' + slide.textPath);
     if (!resp.ok) {
       throw new Error(`Failed to load slide text from ${slide.textPath}`);
     }
@@ -207,7 +212,7 @@ async function getRoundContext(round) {
   }
 
   try {
-    const resp = await fetch(round.contextPath);
+    const resp = await fetch(BASE_PATH + '/' + round.contextPath);
     if (!resp.ok) {
       throw new Error(`Failed to load round context from ${round.contextPath}`);
     }
@@ -235,7 +240,7 @@ async function getStepPrompt(step) {
   }
 
   try {
-    const resp = await fetch(step.promptPath);
+    const resp = await fetch(BASE_PATH + '/' + step.promptPath);
     if (!resp.ok) {
       throw new Error(`Failed to load step prompt from ${step.promptPath}`);
     }
@@ -261,7 +266,7 @@ async function getCircuitText(circuitPath) {
   }
 
   try {
-    const resp = await fetch(circuitPath);
+    const resp = await fetch(BASE_PATH + '/' + circuitPath);
     if (!resp.ok) {
       throw new Error(`Failed to load circuit from ${circuitPath}`);
     }
@@ -281,14 +286,14 @@ async function getCircuitText(circuitPath) {
 function resolveAssetPath(relativePath) {
   if (!campaignData || !relativePath) return relativePath;
   
-  // If path starts with 'content/', use it as-is (relative to docs root)
+  // If path starts with 'content/', use it as-is with BASE_PATH (relative to docs root)
   if (relativePath.startsWith('content/')) {
-    return relativePath;
+    return BASE_PATH + '/' + relativePath;
   }
   
-  // Otherwise prepend assets_base
+  // Otherwise prepend assets_base with BASE_PATH
   const base = campaignData.meta?.assets_base || "assets";
-  return `${base}/${relativePath}`;
+  return BASE_PATH + '/' + base + '/' + relativePath;
 }
 
 // ==========================
@@ -945,7 +950,7 @@ function renderVictory(container) {
 // ==========================
 
 async function loadLevel(levelId) {
-  const response = await fetch(`levels/${levelId}.json`);
+  const response = await fetch(BASE_PATH + `/levels/${levelId}.json`);
   if (!response.ok) {
     throw new Error(`Could not load level file for ${levelId}`);
   }
