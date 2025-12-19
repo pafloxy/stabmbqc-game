@@ -8,7 +8,8 @@
   },
   "config": {
     "timer": {"enabled": false, "seconds_per_step": 300},
-    "cheat": {"enabled": true, "code": "mygame101"}
+    "cheat": {"enabled": true, "code": "mygame101"},
+    "dev_mode": {"enabled": true, "password": "devmode16"}
   },
   "info": {
     "markdown": "STORY\n- Alice encodes her secret in |S, psi>.\n- Bob tries to damage psi using entanglement + forced Pauli measurements.\n- Charlie is a spy: she sends Alice a shortlist of possible measurements she might be forced to perform.\n- Stabilizers are secret: only Alice knows S (and she shows it to you).\n\nMECHANICS\n- Each round: choose an option (measurement, or sometimes an extracted unitary, etc.).\n- If time runs out: you lose the round.\n- If you pick a destructive option: you lose immediately.\n\nWHAT COUNTS AS 'DESTRUCTIVE'\n- A measurement is destructive if it effectively measures logical information (acts like a logical Pauli on psi).\n- A measurement is safe if it only changes the stabilizer record (i.e., it is absorbed by stabilizer update / correction logic).\n\nLEVEL 2 (later)\n- Bob introduces non-Clifford Pauli evolutions U_PES(theta).\n- You must choose measurements that keep the instance extractable AND identify what unitary was induced so Alice can invert it.",
@@ -80,6 +81,7 @@
       "steps": [
         {
           "id": "r1-s1",
+          "status": "active",
           "kind": "select_measurement",
           "promptPath": "content/rounds/r1-s1-prompt.md",
           "options": [
@@ -97,6 +99,7 @@
         },
         {
           "id": "r1-s2",
+          "status": "disabled",
           "kind": "select_measurement",
           "promptPath": "content/rounds/r1-s2-prompt.md",
           "options": [
@@ -107,7 +110,7 @@
           ],
           "answer": {"correct_option_id": "A"},
           "feedback": {
-            "on_correct_markdown": "Correct!",
+            "on_correct_markdown": "Correct! You did not measure the logical operator",
             "on_wrong_markdown": "Opps! You measured our secrets away"
           },
           "timer": {"enabled": false, "seconds": 25}
@@ -116,11 +119,11 @@
     },
     {
       "id": "r2",
-      "title": "Spot the Logical",
+      "title": "Rotation Rescue",
       "difficulty": 1,
-      "contextPath": "content/rounds/r1-context.md",
+      "contextPath": "content/rounds/r2-context.md",
       "assets": {
-        "circuit_image": "content/images/r1-circuit.txt",
+        "circuit_image": "content/images/r2-circuit.txt",
         "graph_image": ""
       },
       "qc_spec": {
@@ -133,16 +136,17 @@
       },
       "steps": [
         {
-          "id": "r2-s1",
+          "id": "r2-s2",
+          "status": "active",
           "kind": "select_measurement",
-          "promptPath": "content/rounds/r1-s1-prompt.md",
+          "promptPath": "content/rounds/r2-s2-prompt.md",
           "options": [
-            {"id": "A", "label": "$Y_2Z_{1}$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
-            {"id": "B", "label": "$X_{1}Z_{2}$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},
-            {"id": "C", "label": "$Z_{4}$", "detail_markdown": "Pauli $X$ on all qubits (sparse: X0 X1 X2)"},
-            {"id": "D", "label": "$X_{3}$" , "detail_markdown": "."}
+            {"id": "A", "label": "$X_{1}Z_{3}$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
+            {"id": "B", "label": "$X_{3}$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},
+            {"id": "C", "label": "$Z_{0}Z_{3}$", "detail_markdown": "Pauli $X$ on all qubits (sparse: X0 X1 X2)"}
+
           ],
-          "answer": {"correct_option_id": "C"},
+          "answer": {"correct_option_id": "B"},
           "feedback": {
             "on_correct_markdown": "Correct!",
             "on_wrong_markdown": "Opps! You measured our secrets away"
@@ -150,14 +154,15 @@
           "timer": {"enabled": false, "seconds": 25}
         },
         {
-          "id": "r2-s2",
+          "id": "r2-s1",
+          "status": "active",
           "kind": "select_measurement",
-          "promptPath": "content/rounds/r1-s2-prompt.md",
+          "promptPath": "content/rounds/r2-s1-prompt.md",
           "options": [
-            {"id": "A", "label": "$Y_2Z_{1}$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
-            {"id": "B", "label": "$X_{1}Z_{2}$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},
-            {"id": "C", "label": "$Z_{4}$", "detail_markdown": "Pauli $X$ on all qubits (sparse: X0 X1 X2)"},
-            {"id": "D", "label": "X_{3}" , "detail_markdown": "."}
+            {"id": "A", "label": "$X_{4}, Z_{4}$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
+            {"id": "B", "label": "$X_{1}Z_{3}, Z_{2}X_{3}$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},
+            {"id": "C", "label": "$Z_{4}Z_{2}, X_{2}$", "detail_markdown": "Pauli $X$ on all qubits (sparse: X0 X1 X2)"}
+            
           ],
           "answer": {"correct_option_id": "A"},
           "feedback": {
@@ -172,9 +177,9 @@
       "id": "r3",
       "title": "Spot the Logical",
       "difficulty": 1,
-      "contextPath": "content/rounds/r1-context.md",
+      "contextPath": "content/rounds/r3-context.md",
       "assets": {
-        "circuit_image": "content/images/r1-circuit.txt",
+        "circuit_image": "content/images/r2-circuit.txt",
         "graph_image": ""
       },
       "qc_spec": {
@@ -188,15 +193,15 @@
       "steps": [
         {
           "id": "r3-s1",
+          "status": "active",
           "kind": "select_measurement",
-          "promptPath": "content/rounds/r1-s1-prompt.md",
+          "promptPath": "content/rounds/r3-s1-prompt.md",
           "options": [
-            {"id": "A", "label": "$Y_2Z_{1}$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
-            {"id": "B", "label": "$X_{1}Z_{2}$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},
-            {"id": "C", "label": "$Z_{4}$", "detail_markdown": "Pauli $X$ on all qubits (sparse: X0 X1 X2)"},
-            {"id": "D", "label": "$X_{3}$" , "detail_markdown": "."}
+            {"id": "A", "label": "$X_{4}(- \theta_{1})$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
+            {"id": "B", "label": "$X_{3}(- \theta_{1})$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},
+            {"id": "C", "label": "$Z_{1}X_{3}X_{4}(- \theta_{1})$", "detail_markdown": "Pauli $X$ on all qubits (sparse: X0 X1 X2)"}
           ],
-          "answer": {"correct_option_id": "C"},
+          "answer": {"correct_option_id": "A"},
           "feedback": {
             "on_correct_markdown": "Correct!",
             "on_wrong_markdown": "Opps! You measured our secrets away"
@@ -205,8 +210,9 @@
         },
         {
           "id": "r3-s2",
+          "status": "disabled",
           "kind": "select_measurement",
-          "promptPath": "content/rounds/r1-s2-prompt.md",
+          "promptPath": "content/rounds/r3-s2-prompt.md",
           "options": [
             {"id": "A", "label": "$Y_2Z_{1}$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
             {"id": "B", "label": "$X_{1}Z_{2}$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},

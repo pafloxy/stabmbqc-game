@@ -1,6 +1,6 @@
 ---
 date-init: Friday, December 19th 2025, 9:52:05 am
-date-modified: Friday, December 19th 2025, 1:55:22 pm
+date-modified: Friday, December 19th 2025, 2:51:40 pm
 ---
 
-Pick the right 
+Discard the harmful measurement

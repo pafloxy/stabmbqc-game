@@ -22,7 +22,8 @@ const appState = {
   hasAnsweredThisStep: false,
   timer: { active: false, remaining: 0, handle: null },
   stats: { correct: 0, wrong: 0 },
-  gameOverReason: null // "timeout" | "wrong_answer" | null
+  gameOverReason: null, // "timeout" | "wrong_answer" | null
+  devMode: false // Developer mode flag
 };
 
 let campaignData = null;
@@ -330,10 +331,47 @@ function updateTimerUI(seconds) {
 }
 
 // ==========================
+// Developer mode handling
+// ==========================
+
+function tryDevMode() {
+  if (!campaignData?.config?.dev_mode?.enabled) {
+    alert("Developer mode is not available.");
+    return;
+  }
+  
+  const password = prompt("Enter developer password:");
+  if (password && password === campaignData.config.dev_mode.password) {
+    appState.devMode = true;
+    alert("Developer mode activated! Timer disabled, skip enabled.");
+    render();
+  } else if (password) {
+    alert("Invalid password!");
+  }
+}
+
+// ==========================
 // Cheat code handling
 // ==========================
 
 function tryCheatCode() {
+  // In dev mode, skip without code - advance one step at a time
+  if (appState.devMode) {
+    const round = getCurrentRound();
+    if (!round) return;
+    
+    const activeSteps = round.activeSteps || round.steps.filter(s => !s.status || s.status === "active");
+    
+    // If not at last step, go to next step
+    if (appState.stepIndex < activeSteps.length - 1) {
+      advanceToNextStep();
+    } else {
+      // At last step, go to next round
+      advanceToNextRound();
+    }
+    return;
+  }
+  
   if (!campaignData?.config?.cheat?.enabled) {
     alert("Cheat codes are disabled.");
     return;
@@ -355,7 +393,8 @@ function advanceToNextStep() {
   const round = getCurrentRound();
   if (!round) return;
 
-  if (appState.stepIndex < round.steps.length - 1) {
+  const activeSteps = round.activeSteps || round.steps.filter(s => !s.status || s.status === "active");
+  if (appState.stepIndex < activeSteps.length - 1) {
     appState.stepIndex += 1;
     appState.hasAnsweredThisStep = false;
     appState.selectedOptionId = null;
@@ -383,17 +422,27 @@ function advanceToNextRound() {
 
 function getCurrentRound() {
   if (!campaignData?.rounds) return null;
-  return campaignData.rounds[appState.roundIndex] || null;
+  const round = campaignData.rounds[appState.roundIndex] || null;
+  if (round && round.steps) {
+    // Filter to only active steps and sort by ID
+    // Status field values: "active" (included), "disabled" (excluded), "testing" (excluded)
+    // Steps without a status field are treated as "active" for backwards compatibility
+    round.activeSteps = round.steps
+      .filter(step => !step.status || step.status === "active")
+      .sort((a, b) => a.id.localeCompare(b.id));
+  }
+  return round;
 }
 
 function getCurrentStep() {
   const round = getCurrentRound();
-  if (!round?.steps) return null;
-  return round.steps[appState.stepIndex] || null;
+  if (!round?.activeSteps) return null;
+  return round.activeSteps[appState.stepIndex] || null;
 }
 
 function restartGame() {
   stopTimer();
+  const preserveDevMode = appState.devMode; // Preserve dev mode across restarts
   appState.phase = "home";
   appState.previousPhase = null;
   appState.introIndex = 0;
@@ -403,6 +452,7 @@ function restartGame() {
   appState.hasAnsweredThisStep = false;
   appState.stats = { correct: 0, wrong: 0 };
   appState.gameOverReason = null;
+  appState.devMode = preserveDevMode;
   render();
 }
 
@@ -513,18 +563,21 @@ function render() {
 function renderHome(container) {
   const title = campaignData?.meta?.title || "Measurement Survival";
   const subtitle = campaignData?.meta?.subtitle || "";
+  const devModeIndicator = appState.devMode ? '<p style="color: #0f0; font-weight: bold;">🔧 DEV MODE ACTIVE</p>' : '';
 
   container.innerHTML = `
     <div class="screen home-screen">
       <div class="home-content">
         <h1 class="game-title">${title}</h1>
         ${subtitle ? `<p class="game-subtitle">${subtitle}</p>` : ""}
+        ${devModeIndicator}
         <div class="home-buttons">
           <button id="start-btn" class="primary-btn">START</button>
           <button id="info-btn" class="secondary-btn">INFO</button>
         </div>
         <p class="home-footer">Press START to begin your mission</p>
       </div>
+      ${!appState.devMode && campaignData?.config?.dev_mode?.enabled ? '<button id="dev-mode-btn" class="secondary-btn small" style="position: absolute; top: 20px; right: 20px; opacity: 0.7;">DEV</button>' : ''}
     </div>
   `;
 
@@ -543,6 +596,17 @@ function renderHome(container) {
   $("#info-btn")?.addEventListener("click", () => {
     showInfoOverlay("rules");
   });
+
+  const devBtn = $("#dev-mode-btn");
+  if (devBtn) {
+    console.log("Dev mode button found, attaching listener");
+    devBtn.addEventListener("click", () => {
+      console.log("Dev mode button clicked");
+      tryDevMode();
+    });
+  } else {
+    console.log("Dev mode button not found in DOM");
+  }
 }
 
 // ==========================
@@ -665,7 +729,8 @@ function renderRound(container) {
   }
 
   const totalRounds = campaignData.rounds.length;
-  const totalSteps = round.steps.length;
+  const activeSteps = round.activeSteps || round.steps.filter(s => !s.status || s.status === "active");
+  const totalSteps = activeSteps.length;
 
   // Build assets HTML
   let assetsHtml = "";
@@ -836,8 +901,8 @@ function renderRound(container) {
     render();
   });
 
-  // Start timer if not answered
-  if (!appState.hasAnsweredThisStep) {
+  // Start timer if not answered and not in dev mode
+  if (!appState.hasAnsweredThisStep && !appState.devMode) {
     const timerConfig = step.timer || campaignData.config?.timer;
     if (timerConfig?.enabled) {
       const seconds = step.timer?.seconds || campaignData.config?.timer?.seconds_per_step || 300;
