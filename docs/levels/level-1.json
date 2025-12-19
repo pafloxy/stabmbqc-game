@@ -197,9 +197,9 @@
           "kind": "select_measurement",
           "promptPath": "content/rounds/r3-s1-prompt.md",
           "options": [
-            {"id": "A", "label": "$X_{4}(- \theta_{1})$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
-            {"id": "B", "label": "$X_{3}(- \theta_{1})$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},
-            {"id": "C", "label": "$Z_{1}X_{3}X_{4}(- \theta_{1})$", "detail_markdown": "Pauli $X$ on all qubits (sparse: X0 X1 X2)"}
+            {"id": "A", "label": "$X_{4}(- \\theta_{1})$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
+            {"id": "B", "label": "$X_{3}(- \\theta_{1})$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},
+            {"id": "C", "label": "$Z_{1}X_{3}X_{4}(- \\theta_{1})$", "detail_markdown": "Pauli $X$ on all qubits (sparse: X0 X1 X2)"}
           ],
           "answer": {"correct_option_id": "A"},
           "feedback": {
@@ -227,7 +227,82 @@
           "timer": {"enabled": false, "seconds": 25}
         }        
       ]
+    },
+
+    {
+      "id": "r4",
+      "title": "Spot the Logical",
+      "difficulty": 1,
+      "contextPath": "content/rounds/r4-context.md",
+      "assets": {
+        "circuit_image": "content/images/r4-circuit.txt",
+        "graph_image": ""
+      },
+      "qc_spec": {
+        "n_qubits": 3,
+        "alice_qubits": [0, 1, 2],
+        "bob_qubits": [],
+        "cz_edges": [],
+        "rotations": [],
+        "stabilizers": ["Z0 Z1", "Z1 Z2"]
+      },
+      "steps": [
+        {
+          "id": "r4-s1",
+          "status": "active",
+          "kind": "select_measurement",
+          "promptPath": "content/rounds/r4-s1-prompt.md",
+          "options": [
+            {"id": "A", "label": "$X_{4}Z_{3}(\\theta_{1}) , X_{1}Z_{2}X_{3}(\\theta_{2})$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
+            {"id": "B", "label": "$X_{4}Z_{3}(\\theta_{1}) , Z_{2}X_{3}(\\theta_{2})$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},
+            {"id": "C", "label": "$X_{1}Z_{2}X_{3}(\\theta_{2}), X_{4}Z_{3}(\\theta_{1})$", "detail_markdown": "Pauli $X$ on all qubits (sparse: X0 X1 X2)"}
+          ],
+          "answer": {"correct_option_id": "A"},
+          "feedback": {
+            "on_correct_markdown": "Correct!",
+            "on_wrong_markdown": "Opps! "
+          },
+          "timer": {"enabled": false, "seconds": 25}
+        },
+        {
+          "id": "r4-s2",
+          "status": "active",
+          "kind": "select_measurement",
+          "promptPath": "content/rounds/r4-s2-prompt.md",
+          "options": [
+            {"id": "A", "label": "$Z_{1}X_{3}Z_{2}(\\theta_{2})$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
+            {"id": "B", "label": "$X_{3}Z_{2}(\\theta_{2})$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},
+            {"id": "C", "label": "$X_{0}Z_{1}(\\theta_{2})$", "detail_markdown": "Pauli $X$ on all qubits (sparse: X0 X1 X2)"}
+          ],
+          "answer": {"correct_option_id": "B"},
+          "feedback": {
+            "on_correct_markdown": "Correct!",
+            "on_wrong_markdown": "Opps! You measured our secrets away"
+          },
+          "timer": {"enabled": false, "seconds": 25}
+        },
+        {
+          "id": "r4-s3",
+          "status": "active",
+          "kind": "select_measurement",
+          "promptPath": "content/rounds/r4-s3-prompt.md",
+          "options": [
+            {"id": "A", "label": "$Z_{1}$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
+            {"id": "B", "label": "$Z_{3}$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},
+            {"id": "C", "label": "$Z_{0}$", "detail_markdown": "Pauli $X$ on all qubits (sparse: X0 X1 X2)"}
+          ],
+          "answer": {"correct_option_id": "B"},
+          "feedback": {
+            "on_correct_markdown": "Correct!",
+            "on_wrong_markdown": "Opps! You measured our secrets away"
+          },
+          "timer": {"enabled": false, "seconds": 25}
+        }
+      ]
     }
+
+
+
   ],
   "disabled_rounds_for_reference": [
     {
