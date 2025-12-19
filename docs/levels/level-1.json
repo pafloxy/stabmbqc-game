@@ -86,6 +86,23 @@
             {"id": "A", "label": "$Y_2Z_{1}$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
             {"id": "B", "label": "$X_{1}Z_{2}$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},
             {"id": "C", "label": "$Z_{4}$", "detail_markdown": "Pauli $X$ on all qubits (sparse: X0 X1 X2)"},
+            {"id": "D", "label": "$X_{3}$" , "detail_markdown": "."}
+          ],
+          "answer": {"correct_option_id": "C"},
+          "feedback": {
+            "on_correct_markdown": "Correct!",
+            "on_wrong_markdown": "Opps! You measured our secrets away"
+          },
+          "timer": {"enabled": false, "seconds": 25}
+        },
+        {
+          "id": "r1-s2",
+          "kind": "select_measurement",
+          "promptPath": "content/rounds/r1-s2-prompt.md",
+          "options": [
+            {"id": "A", "label": "$Y_2Z_{1}$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
+            {"id": "B", "label": "$X_{1}Z_{2}$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},
+            {"id": "C", "label": "$Z_{4}$", "detail_markdown": "Pauli $X$ on all qubits (sparse: X0 X1 X2)"},
             {"id": "D", "label": "X_{3}" , "detail_markdown": "."}
           ],
           "answer": {"correct_option_id": "A"},
@@ -94,11 +111,121 @@
             "on_wrong_markdown": "Opps! You measured our secrets away"
           },
           "timer": {"enabled": false, "seconds": 25}
-        }
+        }        
       ]
-    },  
+    },
     {
       "id": "r2",
+      "title": "Spot the Logical",
+      "difficulty": 1,
+      "contextPath": "content/rounds/r1-context.md",
+      "assets": {
+        "circuit_image": "content/images/r1-circuit.txt",
+        "graph_image": ""
+      },
+      "qc_spec": {
+        "n_qubits": 3,
+        "alice_qubits": [0, 1, 2],
+        "bob_qubits": [],
+        "cz_edges": [],
+        "rotations": [],
+        "stabilizers": ["Z0 Z1", "Z1 Z2"]
+      },
+      "steps": [
+        {
+          "id": "r2-s1",
+          "kind": "select_measurement",
+          "promptPath": "content/rounds/r1-s1-prompt.md",
+          "options": [
+            {"id": "A", "label": "$Y_2Z_{1}$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
+            {"id": "B", "label": "$X_{1}Z_{2}$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},
+            {"id": "C", "label": "$Z_{4}$", "detail_markdown": "Pauli $X$ on all qubits (sparse: X0 X1 X2)"},
+            {"id": "D", "label": "$X_{3}$" , "detail_markdown": "."}
+          ],
+          "answer": {"correct_option_id": "C"},
+          "feedback": {
+            "on_correct_markdown": "Correct!",
+            "on_wrong_markdown": "Opps! You measured our secrets away"
+          },
+          "timer": {"enabled": false, "seconds": 25}
+        },
+        {
+          "id": "r2-s2",
+          "kind": "select_measurement",
+          "promptPath": "content/rounds/r1-s2-prompt.md",
+          "options": [
+            {"id": "A", "label": "$Y_2Z_{1}$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
+            {"id": "B", "label": "$X_{1}Z_{2}$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},
+            {"id": "C", "label": "$Z_{4}$", "detail_markdown": "Pauli $X$ on all qubits (sparse: X0 X1 X2)"},
+            {"id": "D", "label": "X_{3}" , "detail_markdown": "."}
+          ],
+          "answer": {"correct_option_id": "A"},
+          "feedback": {
+            "on_correct_markdown": "Correct!",
+            "on_wrong_markdown": "Opps! You measured our secrets away"
+          },
+          "timer": {"enabled": false, "seconds": 25}
+        }        
+      ]
+    },
+    {
+      "id": "r3",
+      "title": "Spot the Logical",
+      "difficulty": 1,
+      "contextPath": "content/rounds/r1-context.md",
+      "assets": {
+        "circuit_image": "content/images/r1-circuit.txt",
+        "graph_image": ""
+      },
+      "qc_spec": {
+        "n_qubits": 3,
+        "alice_qubits": [0, 1, 2],
+        "bob_qubits": [],
+        "cz_edges": [],
+        "rotations": [],
+        "stabilizers": ["Z0 Z1", "Z1 Z2"]
+      },
+      "steps": [
+        {
+          "id": "r3-s1",
+          "kind": "select_measurement",
+          "promptPath": "content/rounds/r1-s1-prompt.md",
+          "options": [
+            {"id": "A", "label": "$Y_2Z_{1}$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
+            {"id": "B", "label": "$X_{1}Z_{2}$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},
+            {"id": "C", "label": "$Z_{4}$", "detail_markdown": "Pauli $X$ on all qubits (sparse: X0 X1 X2)"},
+            {"id": "D", "label": "$X_{3}$" , "detail_markdown": "."}
+          ],
+          "answer": {"correct_option_id": "C"},
+          "feedback": {
+            "on_correct_markdown": "Correct!",
+            "on_wrong_markdown": "Opps! You measured our secrets away"
+          },
+          "timer": {"enabled": false, "seconds": 25}
+        },
+        {
+          "id": "r3-s2",
+          "kind": "select_measurement",
+          "promptPath": "content/rounds/r1-s2-prompt.md",
+          "options": [
+            {"id": "A", "label": "$Y_2Z_{1}$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
+            {"id": "B", "label": "$X_{1}Z_{2}$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},
+            {"id": "C", "label": "$Z_{4}$", "detail_markdown": "Pauli $X$ on all qubits (sparse: X0 X1 X2)"},
+            {"id": "D", "label": "X_{3}" , "detail_markdown": "."}
+          ],
+          "answer": {"correct_option_id": "A"},
+          "feedback": {
+            "on_correct_markdown": "Correct!",
+            "on_wrong_markdown": "Opps! You measured our secrets away"
+          },
+          "timer": {"enabled": false, "seconds": 25}
+        }        
+      ]
+    }
+  ],
+  "disabled_rounds_for_reference": [
+    {
+      "id": "r2-original",
       "title": "Round 2: Another measurement choice",
       "difficulty": 1,
       "contextPath": "content/rounds/r2-context.md",
@@ -134,7 +261,7 @@
       ]
     },
     {
-      "id": "r3",
+      "id": "r3-original",
       "title": "Round 3: Multi-step challenge",
       "difficulty": 2,
       "contextPath": "content/rounds/r3-context.md",
