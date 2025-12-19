@@ -1,9 +1,9 @@
 ---
 date-init: Friday, December 19th 2025, 9:52:04 am
-date-modified: Friday, December 19th 2025, 2:51:17 pm
+date-modified: Friday, December 19th 2025, 5:45:46 pm
 ---
 
-The state under attack has the following : $\mathcal{S} = \{ X_{0}Z_{2} \: , \: X_{1}Z_{2} \: , \: Z_{0}Z_{1}X_{2}Z_{3} \: , \: X_{1}Z_{2}X_{3}Z_4\}$
+The state under attack has the following : $\mathcal{S} = \{ X_{0}Z_{2} \: , \: X_{1}Z_{2} \: , \: Z_{0}Z_{1}X_{2}Z_{3} \: , \: Z_{2}X_{3}Z_4\}$
 generators. 
 
 Charlie has been tasked to make the following measurements: $\{Y_{2}Z_{1}, X_{1}Z_{2}, Z_{4}, X_{3} \}$

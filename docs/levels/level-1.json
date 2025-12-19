@@ -95,7 +95,7 @@
             "on_correct_markdown": "Correct!",
             "on_wrong_markdown": "Opps! You measured our secrets away"
           },
-          "timer": {"enabled": false, "seconds": 25}
+          "timer": {"enabled": true, "seconds": 300}
         },
         {
           "id": "r1-s2",
@@ -113,7 +113,7 @@
             "on_correct_markdown": "Correct! You did not measure the logical operator",
             "on_wrong_markdown": "Opps! You measured our secrets away"
           },
-          "timer": {"enabled": false, "seconds": 25}
+          "timer": {"enabled": true, "seconds": 300}
         }        
       ]
     },
@@ -151,7 +151,7 @@
             "on_correct_markdown": "Correct!",
             "on_wrong_markdown": "Opps! You measured our secrets away"
           },
-          "timer": {"enabled": false, "seconds": 25}
+          "timer": {"enabled": true, "seconds": 700}
         },
         {
           "id": "r2-s1",
@@ -169,13 +169,13 @@
             "on_correct_markdown": "Correct!",
             "on_wrong_markdown": "Opps! You measured our secrets away"
           },
-          "timer": {"enabled": false, "seconds": 25}
+          "timer": {"enabled": true, "seconds": 700}
         }        
       ]
     },
     {
       "id": "r3",
-      "title": "Spot the Logical",
+      "title": "Reverse the Damage",
       "difficulty": 1,
       "contextPath": "content/rounds/r3-context.md",
       "assets": {
@@ -197,8 +197,8 @@
           "kind": "select_measurement",
           "promptPath": "content/rounds/r3-s1-prompt.md",
           "options": [
-            {"id": "A", "label": "$X_{4}(- \\theta_{1})$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
-            {"id": "B", "label": "$X_{3}(- \\theta_{1})$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},
+            {"id": "A", "label": "$X_{4}(\\theta_{1})$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
+            {"id": "B", "label": "$X_{3}(\\theta_{1})$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},
             {"id": "C", "label": "$Z_{1}X_{3}X_{4}(- \\theta_{1})$", "detail_markdown": "Pauli $X$ on all qubits (sparse: X0 X1 X2)"}
           ],
           "answer": {"correct_option_id": "A"},
@@ -206,7 +206,7 @@
             "on_correct_markdown": "Correct!",
             "on_wrong_markdown": "Opps! You measured our secrets away"
           },
-          "timer": {"enabled": false, "seconds": 25}
+          "timer": {"enabled": true, "seconds": 3000}
         },
         {
           "id": "r3-s2",
@@ -224,14 +224,14 @@
             "on_correct_markdown": "Correct!",
             "on_wrong_markdown": "Opps! You measured our secrets away"
           },
-          "timer": {"enabled": false, "seconds": 25}
+          "timer": {"enabled": true, "seconds": 3000}
         }        
       ]
     },
 
     {
       "id": "r4",
-      "title": "Spot the Logical",
+      "title": "Double Trouble",
       "difficulty": 1,
       "contextPath": "content/rounds/r4-context.md",
       "assets": {
@@ -253,16 +253,16 @@
           "kind": "select_measurement",
           "promptPath": "content/rounds/r4-s1-prompt.md",
           "options": [
-            {"id": "A", "label": "$X_{4}Z_{3}(\\theta_{1}) , X_{1}Z_{2}X_{3}(\\theta_{2})$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
-            {"id": "B", "label": "$X_{4}Z_{3}(\\theta_{1}) , Z_{2}X_{3}(\\theta_{2})$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},
-            {"id": "C", "label": "$X_{1}Z_{2}X_{3}(\\theta_{2}), X_{4}Z_{3}(\\theta_{1})$", "detail_markdown": "Pauli $X$ on all qubits (sparse: X0 X1 X2)"}
+            {"id": "A", "label": "$X_{4}Z_{3}(\\theta_{1}) \\: < \\: X_{1}Z_{2}X_{3}(\\theta_{2})$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
+            {"id": "B", "label": "$X_{4}Z_{3}(\\theta_{1}) \\: < \\: Z_{2}X_{3}(\\theta_{2})$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},
+            {"id": "C", "label": "$X_{1}Z_{2}X_{3}(\\theta_{2}) \\: < \\: X_{4}Z_{3}(\\theta_{1})$", "detail_markdown": "Pauli $X$ on all qubits (sparse: X0 X1 X2)"}
           ],
           "answer": {"correct_option_id": "A"},
           "feedback": {
             "on_correct_markdown": "Correct!",
             "on_wrong_markdown": "Opps! "
           },
-          "timer": {"enabled": false, "seconds": 25}
+          "timer": {"enabled": true, "seconds": 3090}
         },
         {
           "id": "r4-s2",
@@ -279,7 +279,7 @@
             "on_correct_markdown": "Correct!",
             "on_wrong_markdown": "Opps! You measured our secrets away"
           },
-          "timer": {"enabled": false, "seconds": 25}
+          "timer": {"enabled": true, "seconds": 3000}
         },
         {
           "id": "r4-s3",
@@ -296,7 +296,7 @@
             "on_correct_markdown": "Correct!",
             "on_wrong_markdown": "Opps! You measured our secrets away"
           },
-          "timer": {"enabled": false, "seconds": 25}
+          "timer": {"enabled": true, "seconds": 3000}
         }
       ]
     }
@@ -337,7 +337,7 @@
             "on_correct_markdown": "Nice! $X2$ anti-commutes with only $S_2 = \\text{Z1 Z2}$ (position 2: $X$ vs $Z$), making it safe!",
             "on_wrong_markdown": "That measurement was either logical or anti-commutes with multiple stabilizers. Game over!"
           },
-          "timer": {"enabled": false, "seconds": 25}
+          "timer": {"enabled": true, "seconds": 300}
         }
       ]
     },

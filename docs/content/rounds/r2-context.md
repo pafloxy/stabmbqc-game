@@ -1,12 +1,12 @@
 ---
 date-init: Friday, December 19th 2025, 9:52:04 am
-date-modified: Friday, December 19th 2025, 4:49:14 pm
+date-modified: Friday, December 19th 2025, 5:27:19 pm
 ---
 
-Bob failed in the last attempt! But he's trying to more clever tricks ..
+Bob failed in the last attempt! But he's trying  more clever tricks ..
 
 Same state as before with stabilizer generators
-$\mathcal{S} = \{ X_{0}Z_{2} \: , \: X_{1}Z_{2} \: , \: Z_{0}Z_{1}X_{2}Z_{3} \: , \: X_{1}Z_{2}X_{3}Z_4\}$
+$\mathcal{S} = \{ X_{0}Z_{2} \: , \: X_{1}Z_{2} \: , \: Z_{0}Z_{1}X_{2}Z_{3} \: , \: Z_{2}X_{3}Z_4\}$
 
 This time bob has added a pauli-rotation $X_{4}(\theta_{1})$ in his attack. 
 

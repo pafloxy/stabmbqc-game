@@ -1,6 +1,6 @@
 ---
 date-init: Sunday, December 14th 2025, 5:02:03 pm
-date-modified: Friday, December 19th 2025, 11:34:33 am
+date-modified: Friday, December 19th 2025, 5:15:38 pm
 ---
 
 # The 'Logical' Problem 
@@ -23,10 +23,7 @@ $$
 M_{1}=Z_{0}Z_{1}.  
 $$
 
-Since $Z_{0}Z_{1}\ket{000}=+\ket{000}$ and $Z_{0}Z_{1}\ket{111}=+\ket{111}$, the outcome is deterministically $+1$ always   
-$$  
-\hat{M}_{1}(0)\ket{\psi}=\ket{\psi}.  
-$$
+Since $Z_{0}Z_{1}\ket{000}=+\ket{000}$ and $Z_{0}Z_{1}\ket{111}=+\ket{111}$, the outcome is deterministically $+1$ always 
 
 **Verdict: Deterministic**
 
@@ -38,7 +35,7 @@ $$
 M_{2}=X_{0}.  
 $$
 
-Let $\hat{X}_{0}(m)$ denote the projective measurement of $X_{0}$ with outcome $(-1)^{m}$, $m\in{0,1}$. By definition,  
+For the projective measurement $\hat{X}_{0}(m)$ over $X_{0}$ with outcome $(-1)^{m}$, $m\in{0,1}$ we have by definition,  
 $$  
 (-1)^m X_{0},\hat{X}_{0}(m)\ket{\psi}=\hat{X}_{0}(m)\ket{\psi}.  
 $$
@@ -75,7 +72,7 @@ $$
 p(+)=|\alpha|^{2},\qquad p(-)=|\beta|^{2}.  
 $$
 
-Post‑measurement states thus are $\ket{000}\quad\text{or}\quad\ket{111}$ with $p(+)$ or $p(-)$ respectively. Thus there is no way to recover the initial state $\ket{\mathcal{S},\psi}$ via unitary operation
+Post‑measurement states thus are $\ket{000}\quad\text{or}\quad\ket{111}$ with $p(+)$ or $p(-)$ respectively. Thus there is no way to recover the initial state $\ket{\mathcal{S},\psi}$ via unitary operation due to our lack of 'logical' knowledge
 
 **Verdict: Irreversible logical transformation**
 

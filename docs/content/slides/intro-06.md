@@ -1,6 +1,6 @@
 ---
 date-init: Sunday, December 14th 2025, 5:02:03 pm
-date-modified: Friday, December 19th 2025, 12:02:04 am
+date-modified: Friday, December 19th 2025, 5:22:37 pm
 ---
 
 Buttons you'll have:
@@ -11,5 +11,4 @@ Buttons you'll have:
 
 In-game:
 - Rules: opens the full story + mechanics reference.
-- Hints: opens the short 'how to decide' checklist.
 - Restart Game: resets everything back to the intro.
