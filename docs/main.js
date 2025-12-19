@@ -276,6 +276,66 @@ async function getCircuitText(circuitPath) {
 }
 
 // ==========================
+// Hints text loader (supports hints_path)
+// ==========================
+
+const hintsCache = new Map();
+
+async function getHints(info) {
+  if (!info) return null;
+  if (info.hints_markdown) return { text: info.hints_markdown, yaml: null };
+  if (!info.hints_path) return null;
+
+  const cacheKey = `${CACHE_VERSION}:${info.hints_path}`;
+  if (hintsCache.has(cacheKey)) {
+    return hintsCache.get(cacheKey);
+  }
+
+  try {
+    const response = await fetch(BASE_PATH + '/' + info.hints_path);
+    if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
+    const rawText = await response.text();
+    const cleanText = stripYamlFrontmatter(rawText);
+    const result = { text: cleanText, yaml: null };
+    hintsCache.set(cacheKey, result);
+    return result;
+  } catch (err) {
+    console.error('Error loading hints:', err);
+    return { text: 'Error loading hints', yaml: null };
+  }
+}
+
+// ==========================
+// Rules text loader (supports rules_path)
+// ==========================
+
+const rulesCache = new Map();
+
+async function getRules(info) {
+  if (!info) return null;
+  if (info.markdown) return { text: info.markdown, yaml: null };
+  if (!info.rules_path) return null;
+
+  const cacheKey = `${CACHE_VERSION}:${info.rules_path}`;
+  if (rulesCache.has(cacheKey)) {
+    return rulesCache.get(cacheKey);
+  }
+
+  try {
+    const response = await fetch(BASE_PATH + '/' + info.rules_path);
+    if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
+    const rawText = await response.text();
+    const cleanText = stripYamlFrontmatter(rawText);
+    const result = { text: cleanText, yaml: null };
+    rulesCache.set(cacheKey, result);
+    return result;
+  } catch (err) {
+    console.error('Error loading rules:', err);
+    return { text: 'Error loading rules', yaml: null };
+  }
+}
+
+// ==========================
 // Asset path resolver
 // ==========================
 
@@ -466,16 +526,30 @@ function goToHome() {
 // Info / Hints overlay
 // ==========================
 
-function hydrateInfoOverlay() {
+async function hydrateInfoOverlay() {
   const infoData = campaignData?.info || {};
   const rulesBody = $("#info-body-rules");
   const hintsBody = $("#info-body-hints");
 
   if (rulesBody) {
-    rulesBody.innerHTML = markdownToHtml(infoData.markdown || "No rules available yet.");
+    rulesBody.innerHTML = "Loading rules...";
+    const rulesData = await getRules(infoData);
+    if (rulesData) {
+      rulesBody.innerHTML = markdownToHtml(rulesData.text);
+      renderLatex(rulesBody);
+    } else {
+      rulesBody.innerHTML = markdownToHtml(infoData.markdown || "No rules available yet.");
+    }
   }
   if (hintsBody) {
-    hintsBody.innerHTML = markdownToHtml(infoData.hints_markdown || "No hints available yet.");
+    hintsBody.innerHTML = "Loading hints...";
+    const hintsData = await getHints(infoData);
+    if (hintsData) {
+      hintsBody.innerHTML = markdownToHtml(hintsData.text);
+      renderLatex(hintsBody);
+    } else {
+      hintsBody.innerHTML = markdownToHtml(infoData.hints_markdown || "No hints available yet.");
+    }
   }
 }
 
@@ -492,8 +566,8 @@ function setInfoOverlayMode(mode = "rules") {
   hintsTab?.classList.toggle("active", mode === "hints");
 }
 
-function showInfoOverlay(mode = "rules") {
-  hydrateInfoOverlay();
+async function showInfoOverlay(mode = "rules") {
+  await hydrateInfoOverlay();
   setInfoOverlayMode(mode);
   const overlay = $("#info-overlay");
   if (overlay) {
@@ -511,8 +585,8 @@ function hideInfoOverlay() {
 
 function initInfoOverlayEvents() {
   $("#info-close-btn")?.addEventListener("click", hideInfoOverlay);
-  $("#info-tab-rules")?.addEventListener("click", () => showInfoOverlay("rules"));
-  $("#info-tab-hints")?.addEventListener("click", () => showInfoOverlay("hints"));
+  $("#info-tab-rules")?.addEventListener("click", async () => await showInfoOverlay("rules"));
+  $("#info-tab-hints")?.addEventListener("click", async () => await showInfoOverlay("hints"));
   $("#info-overlay")?.addEventListener("click", (evt) => {
     if (evt.target.id === "info-overlay") {
       hideInfoOverlay();
@@ -593,8 +667,8 @@ function renderHome(container) {
     render();
   });
 
-  $("#info-btn")?.addEventListener("click", () => {
-    showInfoOverlay("rules");
+  $("#info-btn")?.addEventListener("click", async () => {
+    await showInfoOverlay("rules");
   });
 
   const devBtn = $("#dev-mode-btn");

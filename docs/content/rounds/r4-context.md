@@ -1,6 +1,6 @@
 ---
 date-init: Friday, December 19th 2025, 4:06:05 pm
-date-modified: Friday, December 19th 2025, 6:28:30 pm
+date-modified: Friday, December 19th 2025, 6:47:31 pm
 ---
 
 Thanks for figuring the unitary, I applied its inverse and retrieved the original state. 

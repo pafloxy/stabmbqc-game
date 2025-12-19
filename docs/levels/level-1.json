@@ -12,8 +12,8 @@
     "dev_mode": {"enabled": true, "password": "devmode16"}
   },
   "info": {
-    "markdown": "STORY\n- Alice encodes her secret in |S, psi>.\n- Bob tries to damage psi using entanglement + forced Pauli measurements.\n- Charlie is a spy: she sends Alice a shortlist of possible measurements she might be forced to perform.\n- Stabilizers are secret: only Alice knows S (and she shows it to you).\n\nMECHANICS\n- Each round: choose an option (measurement, or sometimes an extracted unitary, etc.).\n- If time runs out: you lose the round.\n- If you pick a destructive option: you lose immediately.\n\nWHAT COUNTS AS 'DESTRUCTIVE'\n- A measurement is destructive if it effectively measures logical information (acts like a logical Pauli on psi).\n- A measurement is safe if it only changes the stabilizer record (i.e., it is absorbed by stabilizer update / correction logic).\n\nLEVEL 2 (later)\n- Bob introduces non-Clifford Pauli evolutions U_PES(theta).\n- You must choose measurements that keep the instance extractable AND identify what unitary was induced so Alice can invert it.",
-    "hints_markdown": "QUICK CHECKLIST (Level 1)\n1) Look at the candidate measurement M.\n2) Ask: does M behave like a stabilizer-only disturbance, or does it look logical?\n3) Prefer measurements that 'hit' exactly one stabilizer generator (so one generator is replaced/updated) rather than measurements that commute with everything or look like a logical operator.\n\nRULE OF THUMB\n- \"Commutes with all stabilizers\" is suspicious (often logical).\n- \"Anticommutes with a stabilizer generator\" is usually salvageable (stabilizer update).\n\nIf you're unsure: choose the option that is most obviously tied to the stabilizer subsystem rather than the logical subsystem.",
+    "rules_path": "content/slides/intro-all.md",
+    "hints_path": "content/rounds/hints.md",
     "images": []
   },
   "intro_slides": [
