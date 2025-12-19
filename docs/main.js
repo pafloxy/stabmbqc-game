@@ -21,6 +21,7 @@ const appState = {
 
 let campaignData = null;
 const slideTextCache = new Map();
+const roundContextCache = new Map();
 const infoOverlayState = { mode: "rules" };
 
 // ==========================
@@ -151,6 +152,33 @@ function setSlideBodyText(slide, el) {
       });
     }
   });
+}
+
+// ==========================
+// Round context text loader (supports contextPath)
+// ==========================
+
+async function getRoundContext(round) {
+  if (!round) return "";
+  if (round.context_markdown) return round.context_markdown;
+  if (!round.contextPath) return "";
+
+  if (roundContextCache.has(round.contextPath)) {
+    return roundContextCache.get(round.contextPath);
+  }
+
+  try {
+    const resp = await fetch(round.contextPath);
+    if (!resp.ok) {
+      throw new Error(`Failed to load round context from ${round.contextPath}`);
+    }
+    const txt = await resp.text();
+    roundContextCache.set(round.contextPath, txt);
+    return txt;
+  } catch (err) {
+    console.warn(err.message);
+    return "";
+  }
 }
 
 // ==========================
@@ -604,8 +632,8 @@ function renderRound(container) {
       <main class="round-main">
         <div class="round-left">
           ${assetsHtml}
-          <div class="context-box">
-            <p>${round.context_markdown || ""}</p>
+          <div class="context-box" id="round-context-box">
+            <p>Loading context...</p>
           </div>
         </div>
         
@@ -629,7 +657,14 @@ function renderRound(container) {
       </main>
     </div>
   `;
-
+  // Load and render round context
+  const contextBox = $("#round-context-box");
+  if (contextBox) {
+    getRoundContext(round).then((text) => {
+      contextBox.innerHTML = `<p>${markdownToHtml(text)}</p>`;
+      renderLatex(contextBox);
+    });
+  }
   // Wire up event handlers
   $$(".option-btn").forEach(btn => {
     btn.addEventListener("click", () => {
