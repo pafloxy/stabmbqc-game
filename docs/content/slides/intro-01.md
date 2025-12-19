@@ -17,3 +17,5 @@ A state as such can be represented as $|\mathcal{S},\psi\rangle$.
 For any such state, only I know the stabilizer group $\langle \mathcal{S}  \rangle$ that were used for the encoding. However, noone knows the logical information that were actually encoded. 
 
 But we know that we must protect the logical information from being destroyed since those secrets help your kingdom thrive.
+
+- Princess Alaêm, Good Code Kingdom
