@@ -798,7 +798,7 @@ function renderRound(container) {
   if (round.assets?.circuit_image && round.assets.circuit_image.endsWith('.txt')) {
     const circuitDisplay = $("#circuit-text-display");
     if (circuitDisplay) {
-      getCircuitText(resolveAssetPath(round.assets.circuit_image)).then((text) => {
+      getCircuitText(round.assets.circuit_image).then((text) => {
         circuitDisplay.textContent = text;
       });
     }
