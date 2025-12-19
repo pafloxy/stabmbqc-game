@@ -62,7 +62,7 @@
   "rounds": [
     {
       "id": "r1",
-      "title": "Round 1: Pick a non-destructive measurement",
+      "title": "Spot the Logical",
       "difficulty": 1,
       "contextPath": "content/rounds/r1-context.md",
       "assets": {
@@ -85,7 +85,9 @@
           "options": [
             {"id": "A", "label": "$X0$", "detail_markdown": "Pauli $X$ on qubit 0 only (sparse: X0)"},
             {"id": "B", "label": "$Z0\\,Z1\\,Z2$", "detail_markdown": "Pauli $Z$ on all qubits (sparse: Z0 Z1 Z2)"},
-            {"id": "C", "label": "$X0\\,X1\\,X2$", "detail_markdown": "Pauli $X$ on all qubits (sparse: X0 X1 X2)"}
+            {"id": "C", "label": "$X0\\,X1\\,X2$", "detail_markdown": "Pauli $X$ on all qubits (sparse: X0 X1 X2)"},
+            {"id": "D", }
+
           ],
           "answer": {"correct_option_id": "A"},
           "feedback": {

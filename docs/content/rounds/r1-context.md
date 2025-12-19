@@ -1,10 +1,13 @@
 ---
 date-init: Friday, December 19th 2025, 9:52:04 am
-date-modified: Friday, December 19th 2025, 10:52:31 am
+date-modified: Friday, December 19th 2025, 2:00:29 pm
 ---
 
-Alice holds $|\mathcal{S}, \psi\rangle$ with stabilizers $S_1 = \text{Z0 Z1}$ and $S_2 = \text{Z1 Z2}$ (3-qubit repetition code; sparse Pauli notation).
+The state under attack has the following : $\mathcal{S} = \{ X_{0}Z_{2} \: , \: X_{1}Z_{2} \: , \: Z_{0}Z_{1}X_{2}Z_{3} \: , \: X_{1}Z_{2}X_{3}Z_4\}$
+generators. 
 
-Bob uses only $\mathrm{CZ}$ gates to entangle. Charlie offers several Pauli measurements.
+Charlie has been tasked to make the following measurements: $\{Y_2Z_{1}, X_{1}Z_{2}, Z_{4}, X_{3} \}$
 
-**Remember:** SAFE means anti-commutes with exactly one stabilizer.
+But he can manage to discard one of the measurement. Help me choose that one 
+
+

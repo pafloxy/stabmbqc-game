@@ -1,6 +1,6 @@
 ---
 date-init: Friday, December 19th 2025, 9:52:05 am
-date-modified: Friday, December 19th 2025, 9:57:02 am
+date-modified: Friday, December 19th 2025, 1:55:22 pm
 ---
 
-Charlie offers these Pauli measurements. Pick the one that is **non-destructive** (SAFE).
+Pick the right 
