@@ -22,7 +22,7 @@ But we know that we must protect the logical information from being destroyed si
 
 # The Invader and the Spy
 
-However recently, Bob has been trying to destroy those secrets. He has managed to gain access to the systems that store those quantum states and also developed certain techniques to carry out his plans. 
+However recently, Briegel has been trying to destroy those secrets. He has managed to gain access to the systems that store those quantum states and also developed certain techniques to carry out his plans. 
 
 We have learnt from our spy, that he has the following capabilities:
 - He can construct new $|+\rangle$ states. 
@@ -31,12 +31,12 @@ We have learnt from our spy, that he has the following capabilities:
 
 He's main idea is to perform irreversible transformations on the encoded logical information, which he can induce via measurements on the system. 
 
-But he lacks measurement capabilities, so he ask his ally Charlie. Charlie has the capability to perform multi-qubit projective measurements over pauli strings. 
+But he lacks measurement capabilities, so he ask his ally Caséf. Caséf has the capability to perform multi-qubit projective measurements over pauli strings. 
 
 Example: For a pauli $M \: \in \:\mathcal{P}_{n}$ a projective measurement $\hat{M}$ over state $\ket{\psi}$ yielding outcome $m$ ($m\in \{0,1\}$) leaves it in the 'post-measurement' state $\hat{M}(m) \: \ket{\psi}$ which is stabilized by $(-1)^{m}M$ i.e $(-1)^{m}M \: \hat{M}(m) \: \ket{\psi} \: = \:\hat{M}(m) \: \ket{\psi}$ 
 
-However, Charlie is a spying for us but though
-he wants to help us, but he cannot blow his cover by denying Bob's instructions persistently.
+However, Caséf is a spying for us but though
+he wants to help us, but he cannot blow his cover by denying Briegel's instructions persistently.
 
 --
 
@@ -119,13 +119,13 @@ In the challenges that follow, we will encounter situations as follows.
 
 We will look into a state $\ket{\mathcal{S},\psi}$ under attack. I will provide you the set that generates the stabilizer group $\langle \mathcal{S} \rangle$.
 
-Charlie will smuggle us :
+Caséf will smuggle us :
 
-1. Description Bob's attack circuit 
+1. Description Briegel's attack circuit 
 
-2. Set of measurements that Bob had asked him too as set, often he can convince Bob to remove certain measurements or do a specific measurement, but not always (spy life .. .you know !)  
+2. Set of measurements that Briegel had asked him too as set, often he can convince Briegel to remove certain measurements or do a specific measurement, but not always (spy life .. .you know !)  
 
-3. Even though Charlie can smuggle Bob's attack circuit, the angle of rotations $\theta$ that parameterizing the multi-pauli rotations (like $P(\theta)$ ) will be unavailable to us prior to execution of measurement (Bob keeps them in a secret ledger until Charlie measures them). 
+3. Even though Caséf can smuggle Briegel's attack circuit, the angle of rotations $\theta$ that parameterizing the multi-pauli rotations (like $P(\theta)$ ) will be unavailable to us prior to execution of measurement (Briegel keeps them in a secret ledger until Caséf measures them). 
 
 4. So we receive a circuit made of sequence of $\mathrm{CZ}$ gates and $P$ multi-pauli rotations. 
 
@@ -138,10 +138,10 @@ Our tasks would be based around preventing destruction of logical information th
 Here is how your console will look like :
 
 The panel on the left will display  
-- Bob's attack circuit shown as figure
-	- Alice's qubit will be indexed as $\mathtt{A_i}$ and Bob's as $\mathtt{B_{j}}$ 
+- Briegel's attack circuit shown as figure
+	- Alaêm's qubit will be indexed as $\mathtt{A_i}$ and Briegel's as $\mathtt{B_{j}}$ 
 	- Multi-pauli rotations will appear as boxes : $X_{4}(\theta) \: : \: \mathtt{X \textunderscore 4(th)}$
-- Alice's message about $\langle S \rangle$ and the measurements 
+- Alaêm's message about $\langle S \rangle$ and the measurements 
 
 The panel on the right is where you answer to my specific questions by clicking on the right option.
 
