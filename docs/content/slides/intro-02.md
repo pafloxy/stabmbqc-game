@@ -1,6 +1,6 @@
 ---
 date-init: Sunday, December 14th 2025, 5:02:03 pm
-date-modified: Friday, December 19th 2025, 11:33:59 am
+date-modified: Wednesday, December 24th 2025, 2:51:41 pm
 ---
 
 # The Invader and the Spy
@@ -18,8 +18,8 @@ But he lacks measurement capabilities, so he ask his ally Caséf. Caséf has the
 
 Example: For a pauli $M \: \in \:\mathcal{P}_{n}$ a projective measurement $\hat{M}$ over state $\ket{\psi}$ yielding outcome $m$ ($m\in \{0,1\}$) leaves it in the 'post-measurement' state $\hat{M}(m) \: \ket{\psi}$ which is stabilized by $(-1)^{m}M$ i.e $(-1)^{m}M \: \hat{M}(m) \: \ket{\psi} \: = \:\hat{M}(m) \: \ket{\psi}$ 
 
-However, Caséf is a spying for us but though
-he wants to help us, but he cannot blow his cover by denying Briegel's instructions persistently. 
+However, Caséf is a spy working for us. Though
+she wants to help us, she cannot blow her cover by denying Briegel's instructions persistently. 
 
 
 

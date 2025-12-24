@@ -1,6 +1,6 @@
 ---
 date-init: Sunday, December 14th 2025, 5:02:03 pm
-date-modified: Friday, December 19th 2025, 11:16:10 am
+date-modified: Wednesday, December 24th 2025, 2:49:19 pm
 ---
 
 # Welcome!
@@ -11,7 +11,7 @@ Our ancient kingdom has stored its most precious secrets as quantum states. They
 
 A state as such can be represented as $|\mathcal{S},\psi\rangle$.
 
-- $\langle \mathcal{S}  \rangle$ is the stabilzer group used for the encoding. 
+- $\langle \mathcal{S}  \rangle$ is the stabilizer group used for the encoding. 
 - $\psi$ is the secret logical information that has been encoded. 
 
 For any such state, only I know the stabilizer group $\langle \mathcal{S}  \rangle$ that were used for the encoding. However, noone knows the logical information that were actually encoded. 

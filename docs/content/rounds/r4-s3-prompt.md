@@ -1,6 +1,6 @@
 ---
 date-init: Friday, December 19th 2025, 4:50:32 pm
-date-modified: Friday, December 19th 2025, 6:53:13 pm
+date-modified: Friday, December 19th 2025, 6:54:13 pm
 ---
 
 Ok! So now the $X_{1}Z_{2}X_{3}(\theta_{2})$ is $X_{3}Z_{2}(\theta_{2})$ which commutes with $Z_{1}$ but still not with $Z_{3}$ . 
